@@ -19,10 +19,10 @@ function checkDeadline(started, deadlineMs) {
 }
 
 function validate(payload) {
-  const { distances, customers, vehicles } = payload
+  const { costs, customers, vehicles } = payload
   if (!Array.isArray(customers) || !customers.length) throw new Error('حداقل یک مشتری لازم است.')
   if (!Array.isArray(vehicles) || !vehicles.length) throw new Error('حداقل یک خودروی فعال لازم است.')
-  if (!Array.isArray(distances) || distances.length !== customers.length + 1) throw new Error('ماتریس فاصله معتبر نیست.')
+  if (!Array.isArray(costs) || costs.length !== customers.length + 1 || costs.some(row => !Array.isArray(row) || row.length !== customers.length + 1 || row.some(v => !Number.isFinite(v) || v < 0))) throw new Error('ماتریس هزینه معتبر نیست.')
   if (customers.some(c => !Number.isFinite(c.demand) || c.demand <= 0)) throw new Error('تقاضای مشتری‌ها باید مثبت باشد.')
   if (vehicles.some(v => !Number.isFinite(v.capacity) || v.capacity <= 0)) throw new Error('ظرفیت خودروها باید مثبت باشد.')
   if (customers.some(c => !vehicles.some(v => v.capacity + 1e-9 >= c.demand))) throw new Error('تقاضای حداقل یک مشتری از ظرفیت تمام خودروها بیشتر است.')
@@ -33,7 +33,7 @@ function validate(payload) {
 
 function exactSolve(payload, started) {
   validate(payload)
-  const { distances, customers, vehicles, deadlineMs = 5000 } = payload
+  const { costs, customers, vehicles, deadlineMs = 5000 } = payload
   const n = customers.length
   if (n > 12) throw new Error('__TOO_LARGE__')
   const states = 1 << n
@@ -51,7 +51,7 @@ function exactSolve(payload, started) {
   dp.fill(INF)
   const parent = new Int16Array(size)
   parent.fill(-1)
-  for (let j = 0; j < n; j++) dp[(1 << j) * n + j] = distances[0][j + 1]
+  for (let j = 0; j < n; j++) dp[(1 << j) * n + j] = costs[0][j + 1]
 
   for (let mask = 1; mask < states; mask++) {
     if ((mask & 127) === 0) checkDeadline(started, deadlineMs)
@@ -64,8 +64,7 @@ function exactSolve(payload, started) {
       for (let k = 0; k < n; k++) {
         if (!(prevMask & (1 << k))) continue
         const prev = dp[prevMask * n + k]
-        const edge = distances[k + 1][j + 1]
-        const value = prev + edge
+        const value = prev + costs[k + 1][j + 1]
         if (value < best) { best = value; bestK = k }
       }
       dp[mask * n + j] = best
@@ -83,7 +82,7 @@ function exactSolve(payload, started) {
     let end = -1
     for (let j = 0; j < n; j++) {
       if (!(mask & (1 << j))) continue
-      const value = dp[mask * n + j] + distances[j + 1][0]
+      const value = dp[mask * n + j] + costs[j + 1][0]
       if (value < best) { best = value; end = j }
     }
     tourCost[mask] = best
@@ -149,10 +148,10 @@ function exactSolve(payload, started) {
       vehicleId: vehicles[vi].id,
       indices,
       load: indices.reduce((s, i) => s + customers[i].demand, 0),
-      objectiveDistance: tourCost[sub],
+      objectiveValue: tourCost[sub],
     })
   })
-  return { method: 'exact', optimal: true, routes, objectiveDistance: prev[full] }
+  return { method: 'exact', optimal: true, routes, objectiveValue: prev[full] }
 }
 
 function reconstructTour(mask, end, n, parent) {
@@ -170,25 +169,26 @@ function reconstructTour(mask, end, n, parent) {
 
 function heuristicSolve(payload, started) {
   validate(payload)
-  const { distances, customers, vehicles, deadlineMs = 3500 } = payload
+  const { costs, customers, vehicles, deadlineMs = 3500, objective = 'distance' } = payload
   const assignments = assignByCapacity(customers, vehicles, started, deadlineMs)
   const routes = []
-  let objectiveDistance = 0
+  let objectiveValue = 0
+  const toleranceAbs = objective === 'time' ? 5 : 10
 
   assignments.forEach((indices, vi) => {
     if (!indices.length) return
-    const ordered = buildRoute(indices, customers, distances)
-    const improved = twoOpt(ordered, distances)
-    const cost = routeCost(improved, distances)
-    objectiveDistance += cost
+    const ordered = buildRoute(indices, customers, costs, toleranceAbs)
+    const improved = twoOpt(ordered, costs)
+    const cost = routeCost(improved, costs)
+    objectiveValue += cost
     routes.push({
       vehicleId: vehicles[vi].id,
       indices: improved,
       load: improved.reduce((s, i) => s + customers[i].demand, 0),
-      objectiveDistance: cost,
+      objectiveValue: cost,
     })
   })
-  return { method: 'heuristic', optimal: false, routes, objectiveDistance }
+  return { method: 'heuristic', optimal: false, routes, objectiveValue }
 }
 
 function assignByCapacity(customers, vehicles, started, deadlineMs) {
@@ -220,7 +220,6 @@ function assignByCapacity(customers, vehicles, started, deadlineMs) {
   }
 
   if (!dfs(0)) {
-    // Fast fallback: best-fit decreasing. It may still fail on difficult bin-packing instances.
     remaining.splice(0, remaining.length, ...vehicles.map(v => v.capacity))
     bins.forEach(b => b.splice(0))
     for (const ci of order) {
@@ -236,9 +235,9 @@ function assignByCapacity(customers, vehicles, started, deadlineMs) {
   return bins
 }
 
-function buildRoute(indices, customers, distances) {
+function buildRoute(indices, customers, costs, toleranceAbs) {
   const remaining = [...indices]
-  remaining.sort((a, b) => customers[b].priority - customers[a].priority || distances[0][b + 1] - distances[0][a + 1])
+  remaining.sort((a, b) => customers[b].priority - customers[a].priority || costs[0][b + 1] - costs[0][a + 1])
   const route = [remaining.shift()]
   while (remaining.length) {
     const candidates = []
@@ -246,14 +245,13 @@ function buildRoute(indices, customers, distances) {
       for (let pos = 0; pos <= route.length; pos++) {
         const prev = pos === 0 ? 0 : route[pos - 1] + 1
         const next = pos === route.length ? 0 : route[pos] + 1
-        const delta = distances[prev][ci + 1] + distances[ci + 1][next] - distances[prev][next]
+        const delta = costs[prev][ci + 1] + costs[ci + 1][next] - costs[prev][next]
         candidates.push({ ci, pos, delta, priority: customers[ci].priority })
       }
     }
     const minDelta = Math.min(...candidates.map(c => c.delta))
-    // Distance stays primary. Among insertions within 2% + 10m of the cheapest
-    // increase, prefer higher-priority customers and an earlier service position.
-    const tolerance = Math.max(10, Math.abs(minDelta) * 0.02)
+    // The selected objective remains primary. Priority only breaks near-ties.
+    const tolerance = Math.max(toleranceAbs, Math.abs(minDelta) * 0.02)
     const nearBest = candidates.filter(c => c.delta <= minDelta + tolerance)
       .sort((a, b) => b.priority - a.priority || a.pos - b.pos || a.delta - b.delta)
     const best = nearBest[0]
@@ -263,17 +261,17 @@ function buildRoute(indices, customers, distances) {
   return route
 }
 
-function routeCost(route, distances) {
+function routeCost(route, costs) {
   if (!route.length) return 0
-  let total = distances[0][route[0] + 1]
-  for (let i = 0; i < route.length - 1; i++) total += distances[route[i] + 1][route[i + 1] + 1]
-  return total + distances[route.at(-1) + 1][0]
+  let total = costs[0][route[0] + 1]
+  for (let i = 0; i < route.length - 1; i++) total += costs[route[i] + 1][route[i + 1] + 1]
+  return total + costs[route.at(-1) + 1][0]
 }
 
-function twoOpt(route, distances) {
+function twoOpt(route, costs) {
   if (route.length < 4) return [...route]
   let best = [...route]
-  let bestCost = routeCost(best, distances)
+  let bestCost = routeCost(best, costs)
   let improved = true
   let guard = 0
   while (improved && guard++ < 30) {
@@ -281,7 +279,7 @@ function twoOpt(route, distances) {
     for (let i = 0; i < best.length - 1; i++) {
       for (let k = i + 1; k < best.length; k++) {
         const candidate = [...best.slice(0, i), ...best.slice(i, k + 1).reverse(), ...best.slice(k + 1)]
-        const cost = routeCost(candidate, distances)
+        const cost = routeCost(candidate, costs)
         if (cost + 1e-7 < bestCost) {
           best = candidate
           bestCost = cost

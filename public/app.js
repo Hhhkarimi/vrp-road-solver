@@ -17,6 +17,7 @@ const state = {
   routes: [],
   routeLayers: [],
   pointLayers: [],
+  selectionLayer: null,
   lastSolveMeta: null,
 }
 
@@ -32,13 +33,40 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
 }).addTo(map)
 
+function clearSelectionPin() {
+  if (state.selectionLayer) state.selectionLayer.remove()
+  state.selectionLayer = null
+  $('selectionHint').textContent = ' · برای انتخاب روی نقشه کلیک کنید'
+}
+
+function showSelectionPin(lat, lng) {
+  clearSelectionPin()
+  const modeClass = state.mode === 'depot' ? 'depot-selection' : 'customer-selection'
+  const icon = L.divIcon({
+    className: 'leaflet-div-icon selection-div-icon',
+    html: `<div class="selection-pin-wrap"><span class="selection-pin ${modeClass}"></span><span class="selection-pulse"></span></div>`,
+    iconSize: [38, 46],
+    iconAnchor: [19, 43],
+  })
+  state.selectionLayer = L.marker([lat, lng], { icon, zIndexOffset: 1200, interactive: false }).addTo(map)
+  $('selectionHint').textContent = state.mode === 'depot' ? ' · دپوی انتخاب‌شده؛ هنوز ثبت نشده' : ' · مشتری انتخاب‌شده؛ هنوز ثبت نشده'
+}
+
+function syncSelectionPinFromInputs() {
+  const lat = parseCoordinate('lat', -90, 90)
+  const lng = parseCoordinate('lng', -180, 180)
+  if (lat === null || lng === null) return clearSelectionPin()
+  showSelectionPin(lat, lng)
+}
+
 map.on('click', event => {
   const { lat, lng } = event.latlng
   $('lat').value = lat.toFixed(6)
   $('lng').value = lng.toFixed(6)
+  showSelectionPin(lat, lng)
   setStatus(state.mode === 'depot'
-    ? 'مختصات دپو از روی نقشه انتخاب شد؛ برای ثبت، دکمه «ثبت دپو» را بزنید.'
-    : 'مختصات مشتری از روی نقشه انتخاب شد؛ اطلاعات را کامل و ذخیره کنید.')
+    ? 'مختصات دپو انتخاب شد و پین موقت روی نقشه قرار گرفت؛ برای ثبت، دکمه «ثبت دپو» را بزنید.'
+    : 'مختصات مشتری انتخاب شد و پین موقت محل را نشان می‌دهد؛ اطلاعات را کامل و ذخیره کنید.')
 })
 
 function setMode(mode, preserveForm = false) {
@@ -50,7 +78,7 @@ function setMode(mode, preserveForm = false) {
   $('myLocation').classList.toggle('hidden', customer)
   $('modeBadge').textContent = customer ? 'انتخاب مشتری' : 'انتخاب دپو'
   $('pointName').placeholder = customer ? 'مثلاً مشتری ۱' : 'مثلاً انبار مرکزی'
-  if (!preserveForm) cancelPointEdit(false)
+  if (!preserveForm) { cancelPointEdit(false); clearSelectionPin() }
   updatePointSaveLabel()
 }
 
@@ -75,6 +103,7 @@ function savePoint() {
   if (state.mode === 'depot') {
     state.depot = { id: 'depot', name, lat, lng }
     clearPointForm()
+    clearSelectionPin()
     clearResult()
     renderPoints()
     setStatus(`دپو «${name}» دقیقاً با مختصات ثبت‌شده ذخیره شد.`)
@@ -97,6 +126,7 @@ function savePoint() {
   }
   cancelPointEdit(false)
   clearPointForm()
+  clearSelectionPin()
   clearResult()
   renderPoints()
 }
@@ -119,6 +149,7 @@ function editCustomer(id) {
   $('lng').value = c.lng.toFixed(6)
   $('demand').value = String(c.demand)
   $('priority').value = String(c.priority ?? 3)
+  showSelectionPin(c.lat, c.lng)
   $('cancelEdit').classList.remove('hidden')
   updatePointSaveLabel()
   setStatus(`در حال ویرایش «${c.name}». تغییرات را ذخیره کنید.`)
@@ -130,6 +161,7 @@ function editDepot() {
   $('pointName').value = state.depot.name
   $('lat').value = state.depot.lat.toFixed(6)
   $('lng').value = state.depot.lng.toFixed(6)
+  showSelectionPin(state.depot.lat, state.depot.lng)
   $('cancelEdit').classList.remove('hidden')
   updatePointSaveLabel()
   setStatus('در حال ویرایش دپو. می‌توانید مختصات جدید را روی نقشه انتخاب کنید.')
@@ -138,7 +170,7 @@ function editDepot() {
 function cancelPointEdit(clear = true) {
   state.editingCustomerId = null
   $('cancelEdit').classList.add('hidden')
-  if (clear) clearPointForm()
+  if (clear) { clearPointForm(); clearSelectionPin() }
   updatePointSaveLabel()
 }
 
@@ -154,6 +186,7 @@ function useMyLocation() {
     $('lat').value = pos.coords.latitude.toFixed(6)
     $('lng').value = pos.coords.longitude.toFixed(6)
     map.panTo([pos.coords.latitude, pos.coords.longitude], { animate: false })
+    showSelectionPin(pos.coords.latitude, pos.coords.longitude)
     setStatus('موقعیت فعلی در فرم دپو قرار گرفت؛ برای ثبت، دکمه ذخیره را بزنید.')
   }, () => setStatus('دسترسی به موقعیت مکانی داده نشد یا دریافت موقعیت ناموفق بود.'), { enableHighAccuracy: true, timeout: 10000 })
 }
@@ -329,6 +362,68 @@ function fallbackMatrix(points) {
   return { distances, durations }
 }
 
+const TRAFFIC_SCENARIOS = {
+  base: { label: 'زمان پایه OSRM', alpha: 0 },
+  light: { label: 'ترافیک مصنوعی سبک', alpha: 0.18 },
+  moderate: { label: 'ترافیک مصنوعی متوسط', alpha: 0.38 },
+  heavy: { label: 'ترافیک مصنوعی سنگین', alpha: 0.68 },
+}
+
+function syntheticTrafficDurations(baseDurations, points, scenarioKey) {
+  const scenario = TRAFFIC_SCENARIOS[scenarioKey] || TRAFFIC_SCENARIOS.base
+  if (!scenario.alpha) return baseDurations.map(row => [...row])
+  const center = {
+    lat: points.reduce((s, p) => s + p.lat, 0) / points.length,
+    lng: points.reduce((s, p) => s + p.lng, 0) / points.length,
+  }
+  const midpointDistances = []
+  for (let i = 0; i < points.length; i++) {
+    midpointDistances[i] = []
+    for (let j = 0; j < points.length; j++) {
+      const midpoint = { lat: (points[i].lat + points[j].lat) / 2, lng: (points[i].lng + points[j].lng) / 2 }
+      midpointDistances[i][j] = haversineMeters(midpoint, center)
+    }
+  }
+  const maxDistance = Math.max(1, ...midpointDistances.flat())
+  return baseDurations.map((row, i) => row.map((seconds, j) => {
+    if (i === j) return 0
+    // Reproducible research scenario: OD pairs crossing the center of the study area
+    // receive a larger delay. This is synthetic and not observed traffic data.
+    const centrality = 1 - Math.min(1, midpointDistances[i][j] / maxDistance)
+    const factor = 1 + scenario.alpha * (0.35 + 0.65 * centrality)
+    return seconds * factor
+  }))
+}
+
+function getObjectiveConfig(matrix) {
+  const objective = $('objectiveMode').value
+  if (objective === 'distance') {
+    return { objective, costs: matrix.distances, scenario: 'none', label: 'فاصله جاده‌ای', unit: 'distance' }
+  }
+  const scenario = $('trafficScenario').value
+  const points = [state.depot, ...state.customers]
+  return {
+    objective,
+    costs: syntheticTrafficDurations(matrix.durations, points, scenario),
+    scenario,
+    label: scenario === 'base' && matrix.source !== 'osrm' ? 'زمان تقریبی fallback' : (TRAFFIC_SCENARIOS[scenario]?.label || 'زمان پایه OSRM'),
+    unit: 'time',
+  }
+}
+
+function formatObjective(value, objective) {
+  return objective === 'time' ? `${fmt(value / 60, 1)} دقیقه` : `${fmt(value / 1000)} km`
+}
+
+function updateObjectiveUi() {
+  const isTime = $('objectiveMode').value === 'time'
+  $('trafficScenarioWrap').classList.toggle('hidden', !isTime)
+  clearResult()
+  setStatus(isTime
+    ? 'تابع هدف زمان انتخاب شد. زمان پایه OSRM ترافیک واقعی نیست؛ در صورت انتخاب سناریو، ضرایب مصنوعی پژوهشی اعمال می‌شوند.'
+    : 'تابع هدف فاصله جاده‌ای انتخاب شد.')
+}
+
 async function getRoadMatrix() {
   const points = [state.depot, ...state.customers]
   const fallback = fallbackMatrix(points)
@@ -337,7 +432,7 @@ async function getRoadMatrix() {
     const response = await fetch(`${OSRM_BASE}/table/v1/driving/${coords}?annotations=distance,duration`)
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const data = await response.json()
-    const invalid = data.code !== 'Ok' || !data.distances || !data.durations || data.distances.some(row => row.some(v => !Number.isFinite(v)))
+    const invalid = data.code !== 'Ok' || !data.distances || !data.durations || data.distances.some(row => row.some(v => !Number.isFinite(v))) || data.durations.some(row => row.some(v => !Number.isFinite(v)))
     if (invalid) throw new Error(data.message || 'ماتریس ناقص')
     return { distances: data.distances, durations: data.durations, source: 'osrm' }
   } catch (error) {
@@ -361,7 +456,7 @@ async function getRouteGeometry(orderedCustomers) {
   }
 }
 
-function runWorker(mode, matrix, vehicles, deadlineMs) {
+function runWorker(mode, objectiveConfig, vehicles, deadlineMs) {
   return new Promise((resolve, reject) => {
     const worker = new Worker('./solver-worker.js', { type: 'module' })
     const kill = setTimeout(() => {
@@ -381,7 +476,8 @@ function runWorker(mode, matrix, vehicles, deadlineMs) {
     }
     worker.postMessage({ command: 'solve', payload: {
       mode,
-      distances: matrix.distances,
+      costs: objectiveConfig.costs,
+      objective: objectiveConfig.objective,
       customers: state.customers.map(c => ({ demand: c.demand, priority: c.priority ?? 3 })),
       vehicles: vehicles.map(v => ({ id: v.id, capacity: v.capacity })),
       deadlineMs,
@@ -389,23 +485,23 @@ function runWorker(mode, matrix, vehicles, deadlineMs) {
   })
 }
 
-async function chooseSolver(matrix, vehicles) {
+async function chooseSolver(objectiveConfig, vehicles) {
   const requested = $('solverMode').value
-  if (requested === 'heuristic') return runWorker('heuristic', matrix, vehicles, 3500)
+  if (requested === 'heuristic') return runWorker('heuristic', objectiveConfig, vehicles, 3500)
   if (requested === 'exact') {
     if (state.customers.length > EXACT_MAX_CUSTOMERS) throw new Error(`حل دقیق این نسخه حداکثر برای ${EXACT_MAX_CUSTOMERS} مشتری فعال شده است. حالت خودکار یا ابتکاری را انتخاب کنید.`)
-    return runWorker('exact', matrix, vehicles, 12000)
+    return runWorker('exact', objectiveConfig, vehicles, 12000)
   }
   if (state.customers.length <= EXACT_MAX_CUSTOMERS) {
     try {
-      setStatus('در حال تلاش برای حل دقیق و اثبات بهینگی فاصله‌ای…')
-      return await runWorker('exact', matrix, vehicles, 4500)
+      setStatus(`در حال تلاش برای حل دقیق و اثبات بهینگی ${objectiveConfig.objective === 'time' ? 'زمانی' : 'فاصله‌ای'}…`)
+      return await runWorker('exact', objectiveConfig, vehicles, 4500)
     } catch (error) {
       if (!['__TIMEOUT__', '__TOO_LARGE__'].includes(error.message)) throw error
       setStatus('حل دقیق از حد محاسباتی حالت خودکار عبور کرد؛ در حال حل ابتکاری…')
     }
   }
-  return runWorker('heuristic', matrix, vehicles, 3500)
+  return runWorker('heuristic', objectiveConfig, vehicles, 3500)
 }
 
 async function solve() {
@@ -421,9 +517,10 @@ async function solve() {
   $('solveBtn').disabled = true
   clearResult()
   try {
-    setStatus('در حال دریافت ماتریس فاصله جاده‌ای…')
+    setStatus('در حال دریافت ماتریس فاصله و زمان پایه جاده‌ای…')
     const matrix = await getRoadMatrix()
-    const solverResult = await chooseSolver(matrix, vehicles)
+    const objectiveConfig = getObjectiveConfig(matrix)
+    const solverResult = await chooseSolver(objectiveConfig, vehicles)
     const resultRoutes = []
     for (let i = 0; i < solverResult.routes.length; i++) {
       const sr = solverResult.routes[i]
@@ -431,14 +528,14 @@ async function solve() {
       const orderedCustomers = sr.indices.map(index => state.customers[index])
       setStatus(`در حال دریافت هندسه مسیر ${i + 1} از ${solverResult.routes.length}…`)
       const road = await getRouteGeometry(orderedCustomers)
-      resultRoutes.push({ ...road, vehicleId: sr.vehicleId, vehicle, customerIds: orderedCustomers.map(c => c.id), load: sr.load, objectiveDistance: sr.objectiveDistance })
+      resultRoutes.push({ ...road, vehicleId: sr.vehicleId, vehicle, customerIds: orderedCustomers.map(c => c.id), load: sr.load, objectiveValue: sr.objectiveValue })
     }
     state.routes = resultRoutes
-    state.lastSolveMeta = { ...solverResult, matrixSource: matrix.source }
+    state.lastSolveMeta = { ...solverResult, matrixSource: matrix.source, objective: objectiveConfig.objective, objectiveLabel: objectiveConfig.label, trafficScenario: objectiveConfig.scenario }
     renderRoutes(matrix.warning)
     fitData(true)
     setStatus(solverResult.method === 'exact'
-      ? 'حل دقیق انجام شد؛ بهینگی نسبت به ماتریس فاصله استفاده‌شده تضمین شده است.'
+      ? `حل دقیق انجام شد؛ بهینگی نسبت به ماتریس ${objectiveConfig.objective === 'time' ? 'زمان' : 'فاصله'} استفاده‌شده تضمین شده است.`
       : 'حل ابتکاری انجام شد؛ جواب شدنی است اما تضمین بهینگی ندارد.')
   } catch (error) {
     const message = error.message === '__TIMEOUT__' ? 'حل در محدودیت زمانی مرورگر کامل نشد؛ حالت خودکار یا ابتکاری را انتخاب کنید.' : error.message
@@ -469,7 +566,7 @@ function renderRoutes(matrixWarning) {
     card.style.borderTopColor = color
     card.innerHTML = `
       <div class="route-title">🚚 ${escapeHtml(route.vehicle?.name || `خودرو ${i + 1}`)} <small>${escapeHtml(route.vehicle?.type || '')}</small></div>
-      <div class="route-metrics"><span>بار: <b>${fmt(route.load)} ${escapeHtml(currentUnit())}</b></span><span>ظرفیت: <b>${fmt(route.vehicle?.capacity || 0)} ${escapeHtml(currentUnit())}</b></span><span>فاصله هدف: <b>${fmt(route.objectiveDistance / 1000)} km</b></span><span>مسیر رسم‌شده: <b>${fmt(route.distanceMeters / 1000)} km</b></span><span>زمان تخمینی: <b>${fmt(route.durationSeconds / 60, 0)} دقیقه</b></span></div>
+      <div class="route-metrics"><span>بار: <b>${fmt(route.load)} ${escapeHtml(currentUnit())}</b></span><span>ظرفیت: <b>${fmt(route.vehicle?.capacity || 0)} ${escapeHtml(currentUnit())}</b></span><span>هزینه تابع هدف: <b>${formatObjective(route.objectiveValue, state.lastSolveMeta?.objective)}</b></span><span>مسیر رسم‌شده: <b>${fmt(route.distanceMeters / 1000)} km</b></span><span>زمان پایه OSRM: <b>${fmt(route.durationSeconds / 60, 0)} دقیقه</b></span></div>
       <div class="sequence">دپو ← ${customers.map(c => `${escapeHtml(c.name)} <small>(اولویت ${fmt(c.priority ?? 3, 0)})</small>`).join(' ← ')} ← دپو</div>`
     $('routeGrid').appendChild(card)
   })
@@ -478,11 +575,13 @@ function renderRoutes(matrixWarning) {
   const exact = meta?.method === 'exact'
   $('solutionBadge').className = `solution-badge ${exact ? 'exact' : 'heuristic'}`
   $('solutionBadge').innerHTML = exact
-    ? `<b>حل دقیق</b><span>بهینگی فاصله‌ای نسبت به ماتریس ${meta.matrixSource === 'osrm' ? 'OSRM' : 'تقریبی'} تضمین شده · ${fmt(meta.elapsedMs / 1000, 2)} ثانیه</span>`
+    ? `<b>حل دقیق</b><span>بهینگی ${meta.objective === 'time' ? 'زمانی' : 'فاصله‌ای'} نسبت به ماتریس ${meta.matrixSource === 'osrm' ? 'OSRM' : 'تقریبی'}${meta.objective === 'time' && meta.trafficScenario !== 'base' ? ' + سناریوی مصنوعی' : ''} تضمین شده · ${fmt(meta.elapsedMs / 1000, 2)} ثانیه</span>`
     : `<b>حل ابتکاری</b><span>بدون تضمین بهینگی · ${fmt(meta?.elapsedMs / 1000 || 0, 2)} ثانیه · برای مسائل بزرگ‌تر/سریع</span>`
   $('solutionBadge').classList.remove('hidden')
-  $('resultSubtitle').textContent = `${fmt(state.routes.length, 0)} مسیر برای ${fmt(state.customers.length, 0)} مشتری ساخته شد. تابع هدف Solver مجموع فاصله ماتریسی است.`
-  $('totalDistance').textContent = `${fmt((meta?.objectiveDistance ?? totalRoadDistance) / 1000)} km`
+  $('resultSubtitle').textContent = `${fmt(state.routes.length, 0)} مسیر برای ${fmt(state.customers.length, 0)} مشتری ساخته شد. تابع هدف: ${meta?.objective === 'time' ? meta.objectiveLabel : 'فاصله جاده‌ای'}.`
+  $('objectiveTotalLabel').textContent = meta?.objective === 'time' ? `تابع هدف · ${meta.objectiveLabel}` : 'تابع هدف · فاصله'
+  $('objectiveTotal').textContent = formatObjective(meta?.objectiveValue ?? 0, meta?.objective)
+  $('totalDistance').textContent = `${fmt(totalRoadDistance / 1000)} km`
   $('totalDuration').textContent = `${fmt(totalDuration / 3600, 2)} h`
   $('totals').classList.remove('hidden')
   $('durationNote').classList.remove('hidden')
@@ -490,7 +589,9 @@ function renderRoutes(matrixWarning) {
   const warnings = []
   if (matrixWarning) warnings.push(matrixWarning)
   if (routeFallback) warnings.push('هندسه حداقل یک مسیر از OSRM دریافت نشد و آن بخش به‌صورت تقریبی رسم شد.')
-  warnings.push('ترافیک زنده، پنجره زمانی، زمان سرویس و محدودیت تخصصی کامیون در مدل فعلی لحاظ نشده‌اند.')
+  if (meta?.objective === 'time' && meta.trafficScenario !== 'base') warnings.push('سناریوی ترافیک انتخاب‌شده مصنوعی و برای تحلیل حساسیت است؛ داده زنده، تاریخی یا پیش‌بینی‌شده محسوب نمی‌شود.')
+  else warnings.push('ترافیک زنده/تاریخی در داده OSRM لحاظ نشده است.')
+  warnings.push('پنجره زمانی، زمان سرویس و محدودیت تخصصی کامیون در مدل فعلی لحاظ نشده‌اند.')
   $('warning').textContent = warnings.join(' ')
   $('warning').classList.remove('hidden')
 }
@@ -524,6 +625,7 @@ function loadExample() {
   ]
   $('capacityUnit').value = 'بسته'
   $('customUnitWrap').classList.add('hidden')
+  clearSelectionPin()
   clearResult()
   renderPoints()
   renderVehicles()
@@ -538,6 +640,7 @@ function resetAll() {
   state.vehicles = []
   cancelPointEdit()
   cancelVehicleEdit()
+  clearSelectionPin()
   clearResult()
   renderPoints()
   renderVehicles()
@@ -546,7 +649,7 @@ function resetAll() {
 }
 
 function exportJson() {
-  const payload = { version: '2.0.0', app: 'OptiMasir', unit: currentUnit(), depot: state.depot, customers: state.customers, vehicles: state.vehicles }
+  const payload = { version: '2.1.0', app: 'OptiMasir', unit: currentUnit(), objective: $('objectiveMode').value, trafficScenario: $('trafficScenario').value, depot: state.depot, customers: state.customers, vehicles: state.vehicles }
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
   const a = document.createElement('a')
   a.href = url
@@ -567,7 +670,7 @@ function sanitizeImportedData(data) {
   }
   if (!Array.isArray(vehicleData) || vehicleData.length > 30) throw new Error('لیست خودروها معتبر نیست.')
   const vehicles = vehicleData.map(v => ({ id: crypto.randomUUID(), name: clampText(v.name, 60) || 'خودرو', type: clampText(v.type, 40) || 'خودرو', capacity: positiveNumber(v.capacity), enabled: v.enabled !== false }))
-  return { depot, customers, vehicles, unit: clampText(data.unit, 24) || 'واحد' }
+  return { depot, customers, vehicles, unit: clampText(data.unit, 24) || 'واحد', objective: data.objective === 'time' ? 'time' : 'distance', trafficScenario: TRAFFIC_SCENARIOS[data.trafficScenario] ? data.trafficScenario : 'base' }
 }
 
 function sanitizePoint(p, depot) {
@@ -592,7 +695,10 @@ function importJson(event) {
       const standard = [...$('capacityUnit').options].some(o => o.value === parsed.unit)
       if (standard) $('capacityUnit').value = parsed.unit
       else { $('capacityUnit').value = 'custom'; $('customUnit').value = parsed.unit; $('customUnitWrap').classList.remove('hidden') }
-      clearResult(); renderPoints(); renderVehicles(); updateStats(); fitData(false)
+      $('objectiveMode').value = parsed.objective
+      $('trafficScenario').value = parsed.trafficScenario
+      $('trafficScenarioWrap').classList.toggle('hidden', parsed.objective !== 'time')
+      clearSelectionPin(); clearResult(); renderPoints(); renderVehicles(); updateStats(); fitData(false)
       setStatus('فایل JSON با اعتبارسنجی ورودی بارگذاری شد.')
     } catch (error) { setStatus(error.message || 'ساختار فایل JSON معتبر نیست.') }
   }
@@ -614,6 +720,10 @@ $('saveVehicle').addEventListener('click', saveVehicle)
 $('cancelVehicleEdit').addEventListener('click', () => cancelVehicleEdit())
 $('capacityUnit').addEventListener('change', () => { $('customUnitWrap').classList.toggle('hidden', $('capacityUnit').value !== 'custom'); updateStats(); renderPoints(); renderVehicles() })
 $('customUnit').addEventListener('input', () => { updateStats(); renderRegisteredPoints(); renderVehicles() })
+$('lat').addEventListener('change', syncSelectionPinFromInputs)
+$('lng').addEventListener('change', syncSelectionPinFromInputs)
+$('objectiveMode').addEventListener('change', updateObjectiveUi)
+$('trafficScenario').addEventListener('change', () => { clearResult(); setStatus(`سناریوی ${TRAFFIC_SCENARIOS[$('trafficScenario').value]?.label || 'زمان'} انتخاب شد.`) })
 $('solveBtn').addEventListener('click', solve)
 $('sampleBtn').addEventListener('click', loadExample)
 $('resetBtn').addEventListener('click', resetAll)
