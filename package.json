@@ -1,0 +1,10 @@
+{
+  "name": "vrp-road-solver",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "python3 -m http.server 5173 -d public"
+  }
+}

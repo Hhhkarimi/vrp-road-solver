@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="حل مسئله مسیریابی وسیله نقلیه CVRP و نمایش مسیر واقعی روی OpenStreetMap" />
+  <title>VRP Road Solver</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <header class="brand">
+        <div class="brand-icon">↗</div>
+        <div>
+          <h1>VRP Road Solver</h1>
+          <p>حل CVRP با مسیر واقعی جاده‌ای</p>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div class="panel-title">📍 ورود نقاط</div>
+        <div class="mode-tabs">
+          <button id="modeCustomer" class="active">مشتری</button>
+          <button id="modeDepot">دپو</button>
+        </div>
+        <p class="hint">روی نقشه کلیک کنید یا طول/عرض جغرافیایی را دستی وارد کنید.</p>
+
+        <label for="pointName">نام (اختیاری)</label>
+        <input id="pointName" placeholder="مثلاً مشتری ۱" />
+        <div class="two-col">
+          <div>
+            <label for="lat">عرض جغرافیایی</label>
+            <input id="lat" inputmode="decimal" placeholder="35.7219" />
+          </div>
+          <div>
+            <label for="lng">طول جغرافیایی</label>
+            <input id="lng" inputmode="decimal" placeholder="51.3347" />
+          </div>
+        </div>
+        <div id="demandWrap">
+          <label for="demand">تقاضا</label>
+          <input id="demand" inputmode="decimal" value="1" />
+        </div>
+        <div id="customerActions">
+          <button id="addCustomer" class="primary">＋ افزودن مشتری</button>
+        </div>
+        <div id="depotActions" class="button-row hidden">
+          <button id="setDepot" class="primary no-margin">▣ ثبت دپو</button>
+          <button id="myLocation" class="secondary">◎ موقعیت من</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">🚚 ناوگان</div>
+        <div class="two-col">
+          <div>
+            <label for="vehicleCount">تعداد خودرو</label>
+            <input id="vehicleCount" type="number" min="1" step="1" value="3" />
+          </div>
+          <div>
+            <label for="vehicleCapacity">ظرفیت هر خودرو</label>
+            <input id="vehicleCapacity" type="number" min="0.01" step="0.1" value="10" />
+          </div>
+        </div>
+        <div class="stats-mini">
+          <span>مشتری: <b id="customerCount">۰</b></span>
+          <span>تقاضای کل: <b id="totalDemand">۰</b></span>
+        </div>
+        <button id="solveBtn" class="solve-btn">▶ حل و نمایش مسیر</button>
+      </section>
+
+      <section class="panel compact-actions">
+        <button id="sampleBtn">داده نمونه</button>
+        <button id="exportBtn">↓ خروجی JSON</button>
+        <label class="file-button">↑ ورود JSON<input id="importFile" type="file" accept="application/json" /></label>
+        <button id="resetBtn" class="danger-text">↺ پاک‌کردن</button>
+      </section>
+
+      <div id="status" class="status-box">ابتدا دپو و مشتری‌ها را روی نقشه یا با مختصات وارد کنید.</div>
+    </aside>
+
+    <main class="main-content">
+      <div class="map-wrap">
+        <div id="map" class="map"></div>
+        <div class="map-badge">حالت کلیک: <b id="modeBadge">انتخاب مشتری</b></div>
+      </div>
+
+      <section class="results">
+        <div class="results-head">
+          <div>
+            <h2>نتیجه</h2>
+            <p id="resultSubtitle">بعد از حل، جزئیات مسیرها اینجا نمایش داده می‌شود.</p>
+          </div>
+          <div id="totals" class="totals hidden">
+            <div><span>مسافت کل</span><b id="totalDistance">—</b></div>
+            <div><span>زمان رانندگی</span><b id="totalDuration">—</b></div>
+          </div>
+        </div>
+        <div id="warning" class="warning hidden"></div>
+        <div id="routeGrid" class="route-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
