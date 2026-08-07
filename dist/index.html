@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="اپتی‌مسیر؛ ابزار رایگان حل مسئله مسیریابی وسایل نقلیه با ناوگان ناهمگن، تابع هدف فاصله یا زمان، سناریوی ترافیک مصنوعی، اولویت مشتری و نمایش مسیر جاده‌ای روی OpenStreetMap." />
+  <meta name="description" content="اپتی‌مسیر؛ ابزار رایگان حل مسئله مسیریابی وسایل نقلیه با ناوگان ناهمگن، تابع هدف فاصله، زمان یا هزینه، سناریوی ترافیک مصنوعی، اولویت مشتری و نمایش مسیر جاده‌ای روی OpenStreetMap." />
   <meta name="keywords" content="مسئله مسیریابی وسیله نقلیه, VRP, CVRP, HVRP, بهینه سازی مسیر, ناوگان, لجستیک, مسیر یابی, تحقیق در عملیات" />
   <meta name="author" content="Hossein Karimi" />
   <meta property="og:locale" content="fa_IR" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="اپتی‌مسیر | حل علمی و کاربردی مسئله مسیریابی وسایل نقلیه" />
-  <meta property="og:description" content="حل VRP با ناوگان ناهمگن، ظرفیت و اولویت مشتری؛ نمایش مسیرهای جاده‌ای واقعی و گزارش شفاف روش حل و محدودیت‌ها." />
+  <meta property="og:description" content="حل VRP با ناوگان ناهمگن، هزینه و محدودیت عملیاتی خودرو، CSV/Excel، KPI، سناریوها و گزارش شفاف Exact/Gap/Heuristic." />
   <meta property="og:site_name" content="اپتی‌مسیر" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="اپتی‌مسیر | OptiMasir" />
@@ -31,7 +31,7 @@
     "applicationCategory":"BusinessApplication",
     "operatingSystem":"Any",
     "inLanguage":"fa-IR",
-    "description":"ابزار رایگان برای حل و تحلیل مسئله مسیریابی وسایل نقلیه با ناوگان ناهمگن و نمایش مسیر جاده‌ای.",
+    "description":"ابزار رایگان برای حل و تحلیل مسئله مسیریابی وسایل نقلیه با ناوگان ناهمگن، تابع هدف هزینه، محدودیت عملیاتی، سناریو و گزارش کیفیت جواب.",
     "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
     "creator":{"@type":"Person","name":"Hossein Karimi","sameAs":"https://www.linkedin.com/in/hossein-karimi-8a452153/"}
   }
@@ -56,7 +56,7 @@
       <div>
         <span class="eyebrow">ابزار رایگان تحقیق در عملیات و لجستیک</span>
         <h1>بهینه‌سازی مسیر ناوگان با <em>اپتی‌مسیر</em></h1>
-        <p>دپو، مشتری‌ها، تقاضا، اولویت و خودروهای متفاوت را تعریف کنید؛ اپتی‌مسیر مسئله مسیریابی ظرفیت‌دار با ناوگان ناهمگن را با تابع هدف فاصله یا زمان حل می‌کند و مسیرها را روی OpenStreetMap نمایش می‌دهد.</p>
+        <p>دپو، مشتری‌ها، تقاضا، اولویت و خودروهای متفاوت را تعریف کنید؛ اپتی‌مسیر مسئله مسیریابی ظرفیت‌دار با ناوگان ناهمگن را با تابع هدف فاصله، زمان یا هزینه حل می‌کند و مسیرها را روی OpenStreetMap نمایش می‌دهد.</p>
         <div class="hero-actions">
           <a class="cta" href="#solver">شروع حل مسئله</a>
           <a class="ghost-link" href="#model-limitations">محدودیت‌های مدل را بخوانید</a>
@@ -64,7 +64,7 @@
       </div>
       <div class="model-card">
         <b>مدل فعلی</b>
-        <span>تابع هدف: فاصله جاده‌ای یا زمان سفر برآوردی</span>
+        <span>تابع هدف: فاصله، زمان یا هزینه کل ناوگان</span>
         <span>داده‌ها: ایستا؛ سناریوی ترافیک صرفاً مصنوعی و پژوهشی</span>
         <span>ناوگان: ناهمگن با ظرفیت‌های متفاوت</span>
         <span>حل: دقیق برای ابعاد کوچک، ابتکاری برای بزرگ‌تر</span>
@@ -103,7 +103,7 @@
                   </select>
                 </div>
               </div>
-              <p class="field-note">اولویت یک معیار ثانویه است؛ در حالت دقیق، تابع هدف انتخاب‌شده (فاصله یا زمان) قربانی نمی‌شود و همه مشتری‌ها همچنان باید سرویس بگیرند.</p>
+              <p class="field-note">اولویت از ۱ تا ۵ تعریف می‌شود. سیاست «نرم» ترجیح ثانویه است؛ سیاست «سخت» ترتیب سرویس هر مسیر را از اولویت بالاتر به پایین‌تر محدود می‌کند.</p>
             </div>
             <div class="form-actions">
               <button id="savePoint" class="primary" type="button">＋ افزودن مشتری</button>
@@ -143,6 +143,21 @@
             </div>
             <label for="vehicleCapacity">ظرفیت (<span id="vehicleUnitLabel">واحد</span>)</label>
             <input id="vehicleCapacity" type="number" min="0.0001" step="any" value="10" />
+            <details class="advanced-fields">
+              <summary>هزینه‌ها و محدودیت‌های اختیاری خودرو</summary>
+              <div class="three-col">
+                <div><label for="vehicleFixedCost">هزینه ثابت اعزام</label><input id="vehicleFixedCost" type="number" min="0" step="any" value="0" /></div>
+                <div><label for="vehicleCostKm">هزینه هر km</label><input id="vehicleCostKm" type="number" min="0" step="any" value="0" /></div>
+                <div><label for="vehicleCostMin">هزینه هر دقیقه</label><input id="vehicleCostMin" type="number" min="0" step="any" value="0" /></div>
+              </div>
+              <div class="three-col">
+                <div><label for="vehicleMaxDistance">حداکثر مسافت (km)</label><input id="vehicleMaxDistance" type="number" min="0" step="any" placeholder="نامحدود" /></div>
+                <div><label for="vehicleMaxDuration">حداکثر مدت (دقیقه)</label><input id="vehicleMaxDuration" type="number" min="0" step="any" placeholder="نامحدود" /></div>
+                <div><label for="vehicleMaxStops">حداکثر توقف</label><input id="vehicleMaxStops" type="number" min="1" step="1" placeholder="نامحدود" /></div>
+              </div>
+              <label class="check-line"><input id="vehicleReturnDepot" type="checkbox" checked /> بازگشت خودرو به دپو در پایان مسیر الزامی است</label>
+              <p class="field-note">حداکثر مسافت/زمان در حل ابتکاری به‌صورت محدودیت سخت کنترل می‌شوند. در حضور این دو محدودیت، اپتی‌مسیر گواهی بهینگی دقیق صادر نمی‌کند.</p>
+            </details>
             <div class="form-actions">
               <button id="saveVehicle" class="primary" type="button">＋ افزودن خودرو</button>
               <button id="cancelVehicleEdit" class="secondary hidden" type="button">لغو ویرایش</button>
@@ -156,7 +171,13 @@
             <select id="objectiveMode">
               <option value="distance" selected>کمینه‌سازی فاصله جاده‌ای</option>
               <option value="time">کمینه‌سازی زمان سفر برآوردی</option>
+              <option value="cost">کمینه‌سازی هزینه کل ناوگان</option>
             </select>
+            <div id="costSettingsWrap" class="traffic-box hidden">
+              <label for="costUnit">واحد پول/هزینه</label>
+              <select id="costUnit"><option value="تومان" selected>تومان</option><option value="ریال">ریال</option><option value="هزار تومان">هزار تومان</option><option value="دلار">دلار</option><option value="یورو">یورو</option><option value="واحد پول">واحد پول</option></select>
+              <p class="field-note">هزینه هر مسیر = هزینه ثابت اعزام + هزینه کیلومتری + هزینه زمانی. اگر همه ضرایب یک خودرو صفر باشند، استفاده از آن خودرو در تابع هدف هزینه رایگان محسوب می‌شود.</p>
+            </div>
             <div id="trafficScenarioWrap" class="traffic-box hidden">
               <label for="trafficScenario">سناریوی زمان/ترافیک</label>
               <select id="trafficScenario">
@@ -167,20 +188,37 @@
               </select>
               <p id="trafficScenarioNote" class="field-note traffic-note">زمان پایه از OSRM می‌آید. سناریوهای ترافیک، ضرایب مصنوعی و قابل‌بازتولید برای تحلیل حساسیت هستند و داده تاریخی یا زنده نیستند.</p>
             </div>
+            <label for="priorityPolicy">سیاست اولویت مشتری</label>
+            <select id="priorityPolicy">
+              <option value="soft" selected>نرم · اولویت فقط ترجیح ثانویه در روش ابتکاری</option>
+              <option value="hard">سخت · در هر مسیر، اولویت بالاتر باید زودتر سرویس بگیرد</option>
+            </select>
             <label for="solverMode">حالت حل</label>
             <select id="solverMode">
-              <option value="auto" selected>خودکار · ابتدا دقیق، سپس ابتکاری در صورت نیاز</option>
-              <option value="exact">فقط دقیق · مناسب مسائل کوچک</option>
+              <option value="auto" selected>خودکار · تلاش برای گواهی دقیق، سپس جواب کراندار/ابتکاری</option>
+              <option value="bounded">کراندار · بهترین جواب + Lower Bound + Gap</option>
+              <option value="exact">فقط دقیق · مناسب مسائل کوچک و بدون محدودیت پیچیده</option>
               <option value="heuristic">فقط ابتکاری · سریع و بدون تضمین بهینگی</option>
             </select>
             <div class="solver-policy">
-              <b>سیاست حالت خودکار</b>
-              <span>تا ۱۲ مشتری تلاش برای حل دقیق در Web Worker</span>
-              <span>اگر حد محاسباتی/زمانی رد شود → حل ابتکاری</span>
-              <span>نوع جواب و تابع هدف در نتیجه صریح گزارش می‌شود</span>
+              <b>سیاست حل</b>
+              <span>تا ۱۲ مشتری: DP دقیق روی ماتریس هزینه و ناوگان ناهمگن</span>
+              <span>حالت کراندار: Incumbent + کران پایین معتبر + Optimality Gap</span>
+              <span>حداکثر مسافت/مدت مأموریت → حل ابتکاریِ محدودیت‌پذیر و بدون گواهی Exact</span>
             </div>
             <div class="stats-mini"><span>مشتری: <b id="customerCount">۰</b></span><span>تقاضای کل: <b id="totalDemand">۰</b></span><span>ظرفیت فعال: <b id="totalCapacity">۰</b></span></div>
             <button id="solveBtn" class="solve-btn" type="button">▶ حل و نمایش مسیر</button>
+            <button id="compareBtn" class="subtle full" type="button">▦ مقایسه ۴ سناریو</button>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">📑 ورود گروهی داده</div>
+            <p class="field-note">CSV یا XLSX با ستون <code>kind</code>؛ مقدار kind می‌تواند depot، customer یا vehicle باشد. قبل از اعمال، گزارش اعتبارسنجی نمایش داده می‌شود.</p>
+            <div class="compact-actions">
+              <button id="templateBtn" type="button">↓ قالب CSV</button>
+              <label class="file-button">↑ CSV / Excel<input id="bulkImportFile" type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" /></label>
+            </div>
+            <div id="importReport" class="import-report hidden"></div>
           </section>
 
           <section class="panel compact-actions">
@@ -210,7 +248,9 @@
             </div>
             <div id="solutionBadge" class="solution-badge hidden"></div>
             <div id="warning" class="warning hidden"></div>
+            <div id="kpiGrid" class="kpi-grid hidden"></div>
             <div id="routeGrid" class="route-grid"></div>
+            <section id="scenarioComparison" class="scenario-comparison hidden"><div class="scenario-head"><h4>مقایسه سناریوها</h4><p>همه سناریوها با یک روش ابتکاری یکسان حل می‌شوند تا مقایسه سریع و هم‌سطح باشد.</p></div><div class="table-wrap"><table><thead><tr><th>سناریو</th><th>هدف</th><th>فاصله</th><th>زمان ماتریسی/سناریویی</th><th>خودرو</th><th>بهره‌برداری ظرفیت</th></tr></thead><tbody id="scenarioTableBody"></tbody></table></div></section>
             <p id="durationNote" class="duration-note hidden">* زمان پایه، خروجی پروفایل OSRM است و ترافیک زنده/تاریخی را نشان نمی‌دهد. اگر سناریوی مصنوعی انتخاب شود، تابع هدف زمانی با ضرایب سناریویی محاسبه می‌شود و مقدار پایه OSRM جداگانه برای مقایسه باقی می‌ماند.</p>
           </section>
         </div>
@@ -221,9 +261,9 @@
       <div class="section-heading"><div><span class="eyebrow">شفافیت مدل</span><h2>اپتی‌مسیر دقیقاً چه چیزی را حل می‌کند؟</h2></div></div>
       <div class="explain-grid">
         <article><h3>۱. ورودی ایستا</h3><p>دپو، موقعیت مشتری‌ها، تقاضا، اولویت و ظرفیت خودروها قبل از حل معلوم و ثابت فرض می‌شوند. ورود سفارش جدید، لغو سفارش، خرابی خودرو یا تغییر شرایط در حین اجرا به‌صورت پویا بازبهینه‌سازی نمی‌شود.</p></article>
-        <article><h3>۲. تابع هدف فاصله یا زمان</h3><p>کاربر می‌تواند مجموع فاصله جاده‌ای یا مجموع زمان سفر برآوردی را کمینه کند. زمان پایه از OSRM می‌آید؛ سناریوهای سبک/متوسط/سنگین یک مدل مصنوعی «تراکم بیشتر در مرکز محدوده نقاط» هستند و فقط برای تحلیل حساسیت پژوهشی به کار می‌روند.</p></article>
-        <article><h3>۳. ناوگان ناهمگن</h3><p>هر خودرو ظرفیت مستقل دارد و می‌تواند نوع متفاوتی داشته باشد. با این حال همه خودروها فعلاً از همان شبکه مسیریابی عمومی خودرو در OSRM استفاده می‌کنند؛ نوع خودرو به معنی اعمال خودکار محدودیت کامیون روی خیابان‌ها نیست.</p></article>
-        <article><h3>۴. اولویت مشتری</h3><p>همه مشتری‌ها باید سرویس بگیرند. اولویت برای ترجیح عملیاتی در روش ابتکاری استفاده می‌شود؛ بین درج‌های مسیر با افزایش هزینه نزدیک به بهترین گزینه، مشتری با اولویت بالاتر زودتر ترجیح داده می‌شود؛ در حل دقیق، بهینگی تابع هدف انتخاب‌شده باقی می‌ماند و مشتری کم‌اولویت حذف نمی‌شود.</p></article>
+        <article><h3>۲. تابع هدف فاصله، زمان یا هزینه</h3><p>کاربر می‌تواند مجموع فاصله جاده‌ای، مجموع زمان سفر برآوردی یا هزینه کل ناوگان را کمینه کند. زمان پایه از OSRM می‌آید؛ سناریوهای سبک/متوسط/سنگین یک مدل مصنوعی «تراکم بیشتر در مرکز محدوده نقاط» هستند و فقط برای تحلیل حساسیت پژوهشی به کار می‌روند.</p></article>
+        <article><h3>۳. ناوگان ناهمگن</h3><p>هر خودرو ظرفیت، هزینه ثابت/متغیر و محدودیت‌های عملیاتی اختیاری مستقل دارد و می‌تواند نوع متفاوتی داشته باشد. با این حال همه خودروها فعلاً از همان شبکه مسیریابی عمومی خودرو در OSRM استفاده می‌کنند؛ نوع خودرو به معنی اعمال خودکار محدودیت کامیون روی خیابان‌ها نیست.</p></article>
+        <article><h3>۴. اولویت مشتری</h3><p>همه مشتری‌ها باید سرویس بگیرند. در حالت نرم، اولویت ترجیح ثانویه روش ابتکاری است. در حالت سخت، ترتیب هر مسیر باید از اولویت بالاتر به پایین‌تر باشد. همه مشتری‌ها همچنان باید سرویس بگیرند و اولویت به معنی حذف مشتری کم‌اهمیت نیست.</p></article>
       </div>
 
       <div id="model-limitations" class="limitations">
@@ -234,7 +274,7 @@
           <li><b>Time Window:</b> در این نسخه وارد مدل نشده است. انتخاب تابع هدف زمان به‌تنهایی مدل را به VRPTW یا Dynamic VRP تبدیل نمی‌کند؛ داده‌ها همچنان ایستا هستند.</li>
           <li><b>تقاضای یک‌بعدی:</b> ظرفیت فقط در یک واحد مشترک سنجیده می‌شود؛ وزن و حجم هم‌زمان هنوز مدل نشده‌اند.</li>
           <li><b>تقسیم تقاضا:</b> تقاضای هر مشتری باید کامل توسط یک خودرو خدمت‌رسانی شود (unsplittable demand).</li>
-          <li><b>حل دقیق:</b> فقط برای ابعاد کوچک عملی است. «دقیق» یعنی بهینه نسبت به ماتریس هزینه انتخاب‌شده (فاصله یا زمان سناریویی)، نه تضمین بهترین برنامه در دنیای واقعی با عواملی که در مدل نیستند.</li>
+          <li><b>حل دقیق و Gap:</b> حل دقیق فقط برای ابعاد کوچک عملی است. حالت کراندار، بهترین جواب موجود و یک کران پایین معتبر را گزارش می‌کند و Gap فاصله این دو را نشان می‌دهد. Gap صفر یعنی اثبات بهینگی؛ Gap مثبت یعنی هنوز اثبات کامل نداریم.</li>
           <li><b>OSRM عمومی:</b> سرویس رایگان عمومی برای نمونه‌سازی و استفاده سبک مناسب است و SLA تجاری ندارد. برای تولید پرترافیک، میزبانی سرویس مسیریابی اختصاصی توصیه می‌شود.</li>
         </ul>
       </div>
@@ -264,7 +304,7 @@
 
     <section class="content-section faq-section" aria-labelledby="faq-title">
       <div class="section-heading"><div><span class="eyebrow">پرسش‌های کلیدی</span><h2 id="faq-title">سؤالات متداول</h2></div></div>
-      <details><summary>آیا جواب اپتی‌مسیر همیشه بهینه است؟</summary><p>خیر. اگر نتیجه با «حل دقیق» گزارش شود، جواب نسبت به ماتریس هزینه انتخاب‌شده (فاصله یا زمان) و مدل تعریف‌شده بهینه است. اگر حل ابتکاری استفاده شود، جواب شدنی و معمولاً مناسب است اما تضمین بهینگی ندارد.</p></details>
+      <details><summary>آیا جواب اپتی‌مسیر همیشه بهینه است؟</summary><p>خیر. اگر نتیجه با «حل دقیق» گزارش شود، جواب نسبت به ماتریس هزینه انتخاب‌شده (فاصله، زمان یا هزینه) و مدل تعریف‌شده بهینه است. اگر حل ابتکاری استفاده شود، جواب شدنی و معمولاً مناسب است اما تضمین بهینگی ندارد.</p></details>
       <details><summary>آیا ترافیک تهران یا سایر شهرها در جواب اثر دارد؟</summary><p>ترافیک واقعی خیر؛ اپتی‌مسیر می‌تواند زمان پایه OSRM را کمینه کند یا یک سناریوی مصنوعی سبک/متوسط/سنگین روی آن اعمال کند. این سناریو برای تحلیل حساسیت است و نباید به‌عنوان ترافیک واقعی، تاریخی یا پیش‌بینی‌شده تفسیر شود.</p></details>
       <details><summary>فرق «مسیر واقعی» با «مدل واقعی» چیست؟</summary><p>خط مسیر روی شبکه خیابان‌ها رسم می‌شود، اما مدل تصمیم‌گیری هنوز ساده‌سازی‌هایی دارد. واقعی بودن هندسه مسیر به معنی لحاظ شدن همه هزینه‌ها، قوانین کامیون، ترافیک، شیفت، زمان سرویس یا عدم قطعیت نیست.</p></details>
     </section>
@@ -273,7 +313,7 @@
   <footer>
     <div><b>اپتی‌مسیر</b><span>ابزار آموزشی و پژوهشی رایگان برای بهینه‌سازی مسیر</span></div>
     <p>کاری از <a href="https://www.linkedin.com/in/hossein-karimi-8a452153/" target="_blank" rel="noopener noreferrer">حسین کریمی</a></p>
-    <small>OpenStreetMap contributors · OSRM · Leaflet · Vazirmatn</small>
+    <small>OpenStreetMap contributors · OSRM · Leaflet · Vazirmatn · Browser-based optimization</small>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>

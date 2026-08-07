@@ -1,8 +1,8 @@
 {
   "name": "optimasi",
   "private": true,
-  "version": "2.1.0",
-  "description": "OptiMasir - Persian vehicle routing web application with distance/time objectives, synthetic traffic scenarios, exact and heuristic HVRP solving",
+  "version": "2.2.0",
+  "description": "OptiMasir - operational heterogeneous VRP web app with distance/time/cost objectives, optional vehicle constraints, CSV/XLSX import, KPIs, bounded exact gap reporting, scenario comparison and priorities",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",

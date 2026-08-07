@@ -15,7 +15,7 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="اپتی‌مسیر | OptiMasir" />
   <meta name="twitter:description" content="ابزار رایگان حل و تحلیل مسئله مسیریابی وسایل نقلیه روی نقشه واقعی." />
-  <!-- SEO_CANONICAL -->
+  
   <title>اپتی‌مسیر | حل مسئله مسیریابی وسایل نقلیه و بهینه‌سازی ناوگان</title>
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
   <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
@@ -250,7 +250,7 @@
             <div id="warning" class="warning hidden"></div>
             <div id="kpiGrid" class="kpi-grid hidden"></div>
             <div id="routeGrid" class="route-grid"></div>
-            <section id="scenarioComparison" class="scenario-comparison hidden"><div class="scenario-head"><h4>مقایسه سناریوها</h4><p>همه سناریوها با یک روش ابتکاری یکسان حل می‌شوند تا مقایسه سریع و هم‌سطح باشد.</p></div><div class="table-wrap"><table><thead><tr><th>سناریو</th><th>هدف</th><th>فاصله</th><th>زمان ماتریسی/سناریویی</th><th>خودرو</th><th>بهره‌برداری ظرفیت</th></tr></thead><tbody id="scenarioTableBody"></tbody></table></div></section>
+            <section id="scenarioComparison" class="scenario-comparison hidden"><div class="scenario-head"><h4>مقایسه سناریوها</h4><p>همه سناریوها با یک روش ابتکاری یکسان حل می‌شوند تا مقایسه سریع و هم‌سطح باشد.</p></div><div class="table-wrap"><table><thead><tr><th>سناریو</th><th>هدف</th><th>فاصله</th><th>زمان پایه</th><th>خودرو</th><th>بهره‌برداری ظرفیت</th></tr></thead><tbody id="scenarioTableBody"></tbody></table></div></section>
             <p id="durationNote" class="duration-note hidden">* زمان پایه، خروجی پروفایل OSRM است و ترافیک زنده/تاریخی را نشان نمی‌دهد. اگر سناریوی مصنوعی انتخاب شود، تابع هدف زمانی با ضرایب سناریویی محاسبه می‌شود و مقدار پایه OSRM جداگانه برای مقایسه باقی می‌ماند.</p>
           </section>
         </div>
@@ -316,7 +316,7 @@
     <small>OpenStreetMap contributors · OSRM · Leaflet · Vazirmatn · Browser-based optimization</small>
   </footer>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <script src="./leaflet-stub.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
