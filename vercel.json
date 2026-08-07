@@ -6,14 +6,38 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), payment=(), usb=(), geolocation=(self)" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "X-DNS-Prefetch-Control", "value": "off" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' https://unpkg.com 'sha256-3NTcEQb8qYcGPyLvIeS5FEas6qkS7prda5NW9sL57Lc='; style-src 'self' 'unsafe-inline' https://unpkg.com; font-src 'self' https://unpkg.com; img-src 'self' data: blob: https://tile.openstreetmap.org https://unpkg.com; connect-src 'self' https://router.project-osrm.org; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), payment=(), usb=(), geolocation=(self)"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "X-DNS-Prefetch-Control",
+          "value": "off"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-iz1hSV+bPSpqvfSGj3XhA/wI/DRZzH+9UZH8aV9WqZk='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://tile.openstreetmap.org; connect-src 'self' https://router.project-osrm.org; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests"
+        }
       ]
     }
   ]

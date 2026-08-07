@@ -1,11 +1,15 @@
 {
   "name": "optimasi",
   "private": true,
-  "version": "2.2.0",
-  "description": "OptiMasir - operational heterogeneous VRP web app with distance/time/cost objectives, optional vehicle constraints, CSV/XLSX import, KPIs, bounded exact gap reporting, scenario comparison and priorities",
+  "version": "2.2.1",
+  "description": "OptiMasir - operational heterogeneous VRP web app; map-loading reliability hotfix with self-hosted Leaflet/Vazirmatn assets and browser compatibility fallback.",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "dev": "python3 -m http.server 5173 -d public"
+    "dev": "npm run build && python3 -m http.server 5173 -d dist"
+  },
+  "dependencies": {
+    "leaflet": "1.9.4",
+    "@fontsource-variable/vazirmatn": "5.2.8"
   }
 }

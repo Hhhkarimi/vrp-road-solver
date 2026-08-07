@@ -1,4 +1,4 @@
-# اپتی‌مسیر (OptiMasir) v2.2.0
+# اپتی‌مسیر (OptiMasir) v2.2.1
 
 وب‌اپ فارسی برای تعریف، حل و تحلیل یک مدل ایستای **Heterogeneous Capacitated Vehicle Routing Problem** روی شبکه جاده‌ای OpenStreetMap/OSRM. این نسخه علاوه بر فاصله و زمان، **هزینه کل عملیات**، محدودیت‌های اختیاری خودرو، ورود گروهی CSV/XLSX، داشبورد KPI، گزارش کران پایین و Optimality Gap، مقایسه سناریو و اولویت نرم/سخت را پشتیبانی می‌کند.
 
@@ -161,3 +161,14 @@ SITE_URL=https://your-domain.example
 ## مجوز
 
 MIT. مجوزهای OpenStreetMap، Leaflet و Vazirmatn مستقل هستند و attribution مربوطه باید حفظ شود.
+
+
+## v2.2.1 map reliability hotfix
+
+- Leaflet 1.9.4 is installed as an exact npm dependency and copied into `dist/vendor/leaflet` during build; the browser no longer depends on unpkg to initialize the map.
+- Vazirmatn is also self-hosted from the pinned Fontsource npm package at build time.
+- Added a UUID compatibility fallback for browsers/WebViews without `crypto.randomUUID()`; previously such a browser could fail before map initialization.
+- Added explicit diagnostics for Leaflet load failure and OpenStreetMap tile load failure.
+- Tightened CSP to self-hosted scripts/styles/fonts and corrected the JSON-LD CSP hash.
+
+After replacing the repository files, trigger a fresh Vercel deployment so npm installs the pinned dependencies and `npm run build` vendors them into `dist`.

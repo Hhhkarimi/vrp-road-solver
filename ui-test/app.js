@@ -4,6 +4,19 @@ const IRAN_BOUNDS = [[24.5, 44.0], [40.0, 63.5]]
 const MAX_PUBLIC_POINTS = 50
 const EXACT_MAX_CUSTOMERS = 12
 
+function makeId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.makeId()
+  if (globalThis.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(16)
+    globalThis.crypto.getRandomValues(bytes)
+    bytes[6] = (bytes[6] & 0x0f) | 0x40
+    bytes[8] = (bytes[8] & 0x3f) | 0x80
+    const hex = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('')
+    return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`
+  }
+  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
 const state = {
   mode: 'customer',
   depot: null,
@@ -38,7 +51,7 @@ const nonNegative = value => {
 
 function makeVehicle(input = {}) {
   return {
-    id: input.id || crypto.randomUUID(),
+    id: input.id || makeId(),
     name: clampText(input.name, 60) || 'خودرو',
     type: clampText(input.type, 40) || 'خودرو',
     capacity: Number(input.capacity) > 0 ? Number(input.capacity) : 10,
@@ -53,12 +66,32 @@ function makeVehicle(input = {}) {
   }
 }
 
+if (typeof window.L === 'undefined') {
+  const mapEl = $('map')
+  if (mapEl) {
+    mapEl.classList.add('map-load-failed')
+    const box = document.createElement('div')
+    box.className = 'map-error'
+    box.textContent = 'کتابخانه نقشه بارگذاری نشد. صفحه را یک‌بار Hard Refresh کنید؛ اگر مشکل ادامه داشت، Deploy را دوباره انجام دهید.'
+    mapEl.appendChild(box)
+  }
+  setStatus('خطا در بارگذاری کتابخانه نقشه. فایل Leaflet از خروجی Deploy در دسترس نیست.')
+  throw new Error('Leaflet failed to load')
+}
+
 const map = L.map('map', { zoomControl: true })
 map.fitBounds(IRAN_BOUNDS, { padding: [12, 12], animate: false })
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+const baseTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
 }).addTo(map)
+let tileErrorReported = false
+baseTiles.on('tileerror', () => {
+  if (tileErrorReported) return
+  tileErrorReported = true
+  setStatus('خود نقشه آماده است، اما کاشی‌های OpenStreetMap دریافت نشدند. اتصال شبکه یا دسترسی به tile.openstreetmap.org را بررسی کنید.')
+})
+baseTiles.on('load', () => { tileErrorReported = false })
 
 function clearSelectionPin() {
   if (state.selectionLayer) state.selectionLayer.remove()
@@ -131,7 +164,7 @@ function savePoint() {
     if (!customer) return cancelPointEdit()
     Object.assign(customer, { name, lat, lng, demand, priority }); setStatus(`اطلاعات «${name}» ویرایش شد.`)
   } else {
-    state.customers.push({ id: crypto.randomUUID(), name, lat, lng, demand, priority }); setStatus(`مشتری «${name}» اضافه شد.`)
+    state.customers.push({ id: makeId(), name, lat, lng, demand, priority }); setStatus(`مشتری «${name}» اضافه شد.`)
   }
   cancelPointEdit(false); clearPointForm(); clearSelectionPin(); clearResult(); renderPoints()
 }
@@ -402,7 +435,7 @@ async function compareScenarios() {
 
 function loadExample() {
   state.depot={id:'depot',name:'انبار مرکزی تهران',lat:35.7219,lng:51.3347}; state.customers=[
-    {id:crypto.randomUUID(),name:'ونک',lat:35.7575,lng:51.4090,demand:3,priority:5},{id:crypto.randomUUID(),name:'تجریش',lat:35.8067,lng:51.4280,demand:2,priority:4},{id:crypto.randomUUID(),name:'تهرانپارس',lat:35.7292,lng:51.5326,demand:4,priority:3},{id:crypto.randomUUID(),name:'آزادی',lat:35.6997,lng:51.3370,demand:2,priority:2},{id:crypto.randomUUID(),name:'بازار',lat:35.6757,lng:51.4215,demand:3,priority:5},{id:crypto.randomUUID(),name:'صادقیه',lat:35.7212,lng:51.3231,demand:2,priority:3}]
+    {id:makeId(),name:'ونک',lat:35.7575,lng:51.4090,demand:3,priority:5},{id:makeId(),name:'تجریش',lat:35.8067,lng:51.4280,demand:2,priority:4},{id:makeId(),name:'تهرانپارس',lat:35.7292,lng:51.5326,demand:4,priority:3},{id:makeId(),name:'آزادی',lat:35.6997,lng:51.3370,demand:2,priority:2},{id:makeId(),name:'بازار',lat:35.6757,lng:51.4215,demand:3,priority:5},{id:makeId(),name:'صادقیه',lat:35.7212,lng:51.3231,demand:2,priority:3}]
   state.vehicles=[makeVehicle({name:'وانت A',type:'وانت',capacity:7,fixedCost:350000,costPerKm:11000,costPerMinute:1400,maxStops:4}),makeVehicle({name:'کامیون B',type:'کامیون سبک',capacity:10,fixedCost:700000,costPerKm:18000,costPerMinute:2100,maxDistanceKm:120})]
   $('capacityUnit').value='بسته'; $('customUnitWrap').classList.add('hidden'); clearSelectionPin(); clearResult(); renderPoints(); renderVehicles(); fitData(false); updateStats(); setStatus('داده نمونه عملیاتی تهران بارگذاری شد؛ هزینه‌ها و محدودیت خودروها نیز مقدار نمونه دارند.')
 }
@@ -415,7 +448,7 @@ function exportJson() {
 function downloadBlob(name,blob){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function positiveNumber(v){const n=Number(v);if(!Number.isFinite(n)||n<=0)throw new Error('مقدار ظرفیت/تقاضا در فایل معتبر نیست.');return n}
 function validPriority(v){const n=Number(v??3);return Number.isInteger(n)&&n>=1&&n<=5?n:3}
-function sanitizePoint(p,depot){const lat=Number(p?.lat),lng=Number(p?.lng);if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lng)||lng<-180||lng>180)throw new Error('مختصات فایل ورودی معتبر نیست.');return{id:depot?'depot':crypto.randomUUID(),name:clampText(p.name)||(depot?'دپو':'مشتری'),lat,lng}}
+function sanitizePoint(p,depot){const lat=Number(p?.lat),lng=Number(p?.lng);if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lng)||lng<-180||lng>180)throw new Error('مختصات فایل ورودی معتبر نیست.');return{id:depot?'depot':makeId(),name:clampText(p.name)||(depot?'دپو':'مشتری'),lat,lng}}
 function sanitizeImportedData(data){
   if(!data||typeof data!=='object')throw new Error('ساختار فایل معتبر نیست.');const depot=data.depot==null?null:sanitizePoint(data.depot,true);if(!Array.isArray(data.customers)||data.customers.length>MAX_PUBLIC_POINTS-1)throw new Error('لیست مشتری‌ها معتبر نیست یا بیش از حد بزرگ است.');const customers=data.customers.map(x=>({...sanitizePoint(x,false),demand:positiveNumber(x.demand),priority:validPriority(x.priority)}));let vehicleData=data.vehicles
   if(!Array.isArray(vehicleData)&&Number.isFinite(Number(data.vehicleCapacity))&&Number.isInteger(Number(data.vehicleCount))&&Number(data.vehicleCount)>0){const count=Math.min(Number(data.vehicleCount),30);vehicleData=Array.from({length:count},(_,i)=>({name:`خودرو ${i+1}`,type:'ناوگان قدیمی',capacity:Number(data.vehicleCapacity),enabled:true}))}

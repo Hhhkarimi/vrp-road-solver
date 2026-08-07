@@ -4,6 +4,16 @@ await rm('dist', { recursive: true, force: true })
 await mkdir('dist', { recursive: true })
 await cp('public', 'dist', { recursive: true })
 
+// Vendor runtime map/font assets into the deployment output so the browser does
+// not depend on a third-party CDN just to initialize the UI.
+await mkdir('dist/vendor/leaflet', { recursive: true })
+await cp('node_modules/leaflet/dist/leaflet.js', 'dist/vendor/leaflet/leaflet.js')
+await cp('node_modules/leaflet/dist/leaflet.css', 'dist/vendor/leaflet/leaflet.css')
+await cp('node_modules/leaflet/dist/images', 'dist/vendor/leaflet/images', { recursive: true })
+await mkdir('dist/vendor/vazirmatn', { recursive: true })
+await cp('node_modules/@fontsource-variable/vazirmatn/index.css', 'dist/vendor/vazirmatn/index.css')
+await cp('node_modules/@fontsource-variable/vazirmatn/files', 'dist/vendor/vazirmatn/files', { recursive: true })
+
 const siteUrl = (process.env.SITE_URL || '').trim().replace(/\/$/, '')
 if (siteUrl) {
   const indexPath = 'dist/index.html'
