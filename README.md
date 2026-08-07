@@ -1,0 +1,131 @@
+# اپتی‌مسیر (OptiMasir) v2.0.0
+
+وب‌اپ فارسی رایگان برای تعریف و حل یک مدل ایستای **Vehicle Routing Problem** با ظرفیت و ناوگان ناهمگن و نمایش مسیرهای جاده‌ای روی OpenStreetMap.
+
+## قابلیت‌های اصلی
+
+- ثبت دپو و مشتری با کلیک روی نقشه یا مختصات Latitude/Longitude
+- حذف و ویرایش مستقل دپو و تک‌تک مشتری‌ها
+- تقاضای مشتری با واحد انتخابی مشترک (kg، ton، m³، پالت، بسته، مسافر یا واحد دلخواه)
+- اولویت مشتری از ۱ تا ۵
+- تعریف ناوگان ناهمگن: نام، نوع و ظرفیت متفاوت برای هر خودرو
+- فعال/غیرفعال کردن، ویرایش و حذف هر خودرو
+- حالت حل `Auto`، `Exact` و `Heuristic`
+- حل دقیق برای مسائل کوچک با Dynamic Programming / subset partitioning
+- fallback خودکار به حل ابتکاری در حالت Auto در صورت عبور از محدودیت محاسباتی
+- گزارش صریح اینکه جواب دقیق است یا ابتکاری و آیا تضمین بهینگی دارد یا خیر
+- ماتریس فاصله جاده‌ای از OSRM Table API
+- هندسه مسیر از OSRM Route API
+- نمایش OpenStreetMap با Leaflet
+- Import/Export داده سناریو با JSON (با مهاجرت خودکار خروجی‌های نسخه قدیمی که vehicleCount/vehicleCapacity داشتند)
+- رابط RTL با فونت Vazirmatn
+- محتوای توضیحی علمی، کاربردها، فرض‌ها و محدودیت‌ها برای SEO/GEO
+- Structured Data از نوع WebApplication/SoftwareApplication
+- هدرهای امنیتی Vercel و Content Security Policy
+
+## مدل ریاضی/عملیاتی فعلی
+
+این نسخه یک مدل **ایستا، تک‌دپو، ظرفیت‌دار، تقاضای غیرقابل‌تقسیم و ناوگان ناهمگن** را حل می‌کند. همه مشتری‌ها باید دقیقاً توسط یک خودرو سرویس بگیرند و هر مسیر از دپو شروع و به دپو ختم می‌شود.
+
+تابع هدف Solver، **کمینه‌سازی مجموع فاصله ماتریسی** است. زمان سفر در تابع هدف وارد نمی‌شود. مقدار زمان صرفاً برای اطلاع از خروجی OSRM نمایش داده می‌شود.
+
+### معنی «حل دقیق»
+
+در حالت Exact، Solver با برنامه‌ریزی پویا بهترین تور هر زیرمجموعه مشتری‌ها را محاسبه می‌کند و سپس تخصیص زیرمجموعه‌ها به خودروهای با ظرفیت متفاوت را بررسی می‌کند. اگر حل کامل شود، جواب نسبت به ماتریس فاصله‌ای که به Solver داده شده **بهینه** است.
+
+این تضمین به این معنی نیست که جواب در دنیای واقعی با ترافیک، محدودیت کامیون، زمان خدمت، قوانین عملیاتی و عدم قطعیت نیز بهینه است.
+
+برای جلوگیری از قفل‌شدن مرورگر، Exact به ۱۲ مشتری محدود شده و در حالت Auto محدودیت زمانی دارد. اگر حل دقیق در Auto کامل نشود، اپ به روش Heuristic می‌رود و این موضوع را در نتیجه اعلام می‌کند.
+
+### روش ابتکاری
+
+روش ابتکاری شامل تخصیص ظرفیت‌پذیر مشتری‌ها به ناوگان متفاوت، ساخت مسیر با cheapest insertion و بهبود محلی 2-opt است. اولویت مشتری یک معیار ثانویه است؛ در cheapest insertion، میان گزینه‌هایی که افزایش فاصله آن‌ها حداکثر ۲٪ + ۱۰ متر با بهترین درج اختلاف دارد، اولویت بالاتر و موقعیت سرویس زودتر ترجیح داده می‌شود. این روش تضمین global optimum ندارد.
+
+## محدودیت‌های مهم
+
+- داده‌ها پویا نیستند و در میانه عملیات بازبهینه‌سازی انجام نمی‌شود.
+- ترافیک زنده لحاظ نمی‌شود.
+- Time Window و زمان سرویس مدل نشده‌اند.
+- ظرفیت یک‌بعدی است؛ وزن و حجم هم‌زمان هنوز پشتیبانی نمی‌شود.
+- سرویس عمومی OSRM از پروفایل عمومی خودرو استفاده می‌کند؛ محدودیت تخصصی کامیون مانند ارتفاع، وزن محور، عرض و قوانین ناوگان سنگین تضمین نمی‌شود.
+- اولویت باعث حذف مشتری کم‌اولویت نمی‌شود و در حل دقیق تابع هدف فاصله‌ای را تغییر نمی‌دهد.
+- اگر OSRM در دسترس نباشد، ماتریس fallback تقریبی (Haversine × 1.25) استفاده می‌شود و UI این موضوع را هشدار می‌دهد.
+- سرویس‌های عمومی OSM/OSRM برای بار تجاری سنگین یا SLA تولیدی مناسب نیستند؛ برای production پرترافیک، self-host کردن routing stack پیشنهاد می‌شود.
+
+## توسعه محلی
+
+```bash
+npm run dev
+```
+
+سپس مرورگر را روی `http://localhost:5173` باز کنید.
+
+## Build
+
+```bash
+npm run build
+```
+
+خروجی در پوشه `dist` ساخته می‌شود.
+
+### Canonical و Sitemap
+
+برای SEO، متغیر محیطی `SITE_URL` را در Vercel روی دامنه نهایی تنظیم کنید، مثلاً:
+
+```text
+SITE_URL=https://optimasi.example.com
+```
+
+Build در این حالت canonical، `og:url` و `sitemap.xml` را با دامنه واقعی تولید می‌کند. اگر `SITE_URL` تنظیم نشده باشد، عمداً canonical جعلی تولید نمی‌شود.
+
+## Deploy روی Vercel
+
+1. پروژه را در GitHub push کنید.
+2. Repository را در Vercel Import کنید.
+3. Framework Preset می‌تواند `Other` باشد.
+4. Build Command: `npm run build`
+5. Output Directory: `dist`
+6. متغیر `SITE_URL` را روی دامنه نهایی تنظیم کنید.
+7. Deploy کنید.
+
+## امنیت
+
+این پروژه backend، حساب کاربری یا secret ندارد و داده مسئله را ذخیره نمی‌کند. برای نسخه Vercel موارد زیر تنظیم شده‌اند:
+
+- Content-Security-Policy با allow-list محدود
+- Subresource Integrity برای Leaflet
+- HSTS
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY` و `frame-ancestors 'none'`
+- Referrer Policy
+- Permissions Policy
+- Cross-Origin-Opener-Policy
+- محدودیت اندازه و اعتبارسنجی ساختار JSON ورودی
+- escape کردن داده‌های کاربر قبل از تزریق در HTML
+- محدود کردن طول ورودی‌های متنی و بازه مختصات
+
+هیچ وب‌اپی را نمی‌توان «صددرصد امن» اعلام کرد. قبل از production جدی، dependency review، آزمون امنیتی، مانیتورینگ و بررسی headers روی دامنه واقعی توصیه می‌شود.
+
+## SEO / GEO
+
+- محتوای فارسی people-first درباره مدل، فرض‌ها، کاربردها و محدودیت‌ها
+- Semantic headings و navigation
+- meta description و Open Graph
+- WebApplication / SoftwareApplication structured data
+- robots.txt و sitemap تولیدشونده با دامنه واقعی
+- محتوای متنی روشن برای قابلیت بازیابی در موتورهای جست‌وجوی کلاسیک و سیستم‌های generative search
+
+## منابع علمی و فنی
+
+- Dantzig, G. B., & Ramser, J. H. (1959). *The Truck Dispatching Problem*. Management Science, 6(1), 80–91. https://doi.org/10.1287/mnsc.6.1.80
+- Clarke, G., & Wright, J. W. (1964). *Scheduling of Vehicles from a Central Depot to a Number of Delivery Points*. Operations Research, 12(4), 568–581. https://doi.org/10.1287/opre.12.4.568
+- OSRM Documentation: https://project-osrm.org/docs/
+- OpenStreetMap: https://www.openstreetmap.org/
+
+## اعتبار
+
+کاری از [حسین کریمی](https://www.linkedin.com/in/hossein-karimi-8a452153/)
+
+## مجوز
+
+MIT. مجوزهای OpenStreetMap، Leaflet و Vazirmatn مستقل از مجوز کد پروژه هستند و attribution مربوطه باید حفظ شود.

@@ -1,0 +1,11 @@
+{
+  "name": "optimasi",
+  "private": true,
+  "version": "2.0.0",
+  "description": "OptiMasir - Persian vehicle routing web application with exact and heuristic HVRP solving",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "python3 -m http.server 5173 -d public"
+  }
+}

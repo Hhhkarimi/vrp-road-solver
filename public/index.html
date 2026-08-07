@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="اپتی‌مسیر؛ ابزار رایگان حل مسئله مسیریابی وسایل نقلیه با ناوگان ناهمگن، ظرفیت، اولویت مشتری و نمایش مسیر جاده‌ای روی OpenStreetMap. حل دقیق برای مسائل کوچک و حل ابتکاری برای مسائل بزرگ‌تر." />
+  <meta name="keywords" content="مسئله مسیریابی وسیله نقلیه, VRP, CVRP, HVRP, بهینه سازی مسیر, ناوگان, لجستیک, مسیر یابی, تحقیق در عملیات" />
+  <meta name="author" content="Hossein Karimi" />
+  <meta property="og:locale" content="fa_IR" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="اپتی‌مسیر | حل علمی و کاربردی مسئله مسیریابی وسایل نقلیه" />
+  <meta property="og:description" content="حل VRP با ناوگان ناهمگن، ظرفیت و اولویت مشتری؛ نمایش مسیرهای جاده‌ای واقعی و گزارش شفاف روش حل و محدودیت‌ها." />
+  <meta property="og:site_name" content="اپتی‌مسیر" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="اپتی‌مسیر | OptiMasir" />
+  <meta name="twitter:description" content="ابزار رایگان حل و تحلیل مسئله مسیریابی وسایل نقلیه روی نقشه واقعی." />
+  <!-- SEO_CANONICAL -->
+  <title>اپتی‌مسیر | حل مسئله مسیریابی وسایل نقلیه و بهینه‌سازی ناوگان</title>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
+  <link rel="stylesheet" href="https://unpkg.com/@fontsource-variable/vazirmatn@5.2.8/index.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":["WebApplication","SoftwareApplication"],
+    "name":"اپتی‌مسیر",
+    "alternateName":"OptiMasir",
+    "applicationCategory":"BusinessApplication",
+    "operatingSystem":"Any",
+    "inLanguage":"fa-IR",
+    "description":"ابزار رایگان برای حل و تحلیل مسئله مسیریابی وسایل نقلیه با ناوگان ناهمگن و نمایش مسیر جاده‌ای.",
+    "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+    "creator":{"@type":"Person","name":"Hossein Karimi","sameAs":"https://www.linkedin.com/in/hossein-karimi-8a452153/"}
+  }
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-brand" href="#top" aria-label="اپتی‌مسیر">
+      <span class="brand-mark">↗</span>
+      <span><b>اپتی‌مسیر</b><small>OptiMasir · Vehicle Routing Lab</small></span>
+    </a>
+    <nav aria-label="ناوبری اصلی">
+      <a href="#solver">حل مسئله</a>
+      <a href="#how-it-works">روش و فرض‌ها</a>
+      <a href="#applications">کاربردها</a>
+      <a href="#research">منابع علمی</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">ابزار رایگان تحقیق در عملیات و لجستیک</span>
+        <h1>بهینه‌سازی مسیر ناوگان با <em>اپتی‌مسیر</em></h1>
+        <p>دپو، مشتری‌ها، تقاضا، اولویت و خودروهای متفاوت را تعریف کنید؛ اپتی‌مسیر مسئله مسیریابی ظرفیت‌دار با ناوگان ناهمگن را روی ماتریس فاصله جاده‌ای حل می‌کند و مسیرها را روی OpenStreetMap نمایش می‌دهد.</p>
+        <div class="hero-actions">
+          <a class="cta" href="#solver">شروع حل مسئله</a>
+          <a class="ghost-link" href="#model-limitations">محدودیت‌های مدل را بخوانید</a>
+        </div>
+      </div>
+      <div class="model-card">
+        <b>مدل فعلی</b>
+        <span>هدف اصلی: کمینه‌سازی مجموع فاصله</span>
+        <span>داده‌ها: ایستا و از پیش معلوم</span>
+        <span>ناوگان: ناهمگن با ظرفیت‌های متفاوت</span>
+        <span>حل: دقیق برای ابعاد کوچک، ابتکاری برای بزرگ‌تر</span>
+      </div>
+    </section>
+
+    <section id="solver" class="solver-section" aria-labelledby="solver-title">
+      <div class="section-heading">
+        <div><span class="eyebrow">Solver</span><h2 id="solver-title">حل مسئله و نمایش مسیر</h2></div>
+        <p>هیچ داده‌ای به سرور اپتی‌مسیر ذخیره نمی‌شود؛ مختصات فقط برای دریافت مسیر به سرویس عمومی OSRM ارسال می‌شود.</p>
+      </div>
+
+      <div class="app-shell">
+        <aside class="sidebar" aria-label="تنظیمات مسئله">
+          <section class="panel">
+            <div class="panel-title">📍 دپو و مشتری</div>
+            <div class="mode-tabs">
+              <button id="modeCustomer" type="button" class="active">مشتری</button>
+              <button id="modeDepot" type="button">دپو</button>
+            </div>
+            <p class="hint">روی نقشه کلیک کنید تا مختصات دقیق در فرم قرار بگیرد؛ ثبت نقطه فقط با دکمه ذخیره انجام می‌شود.</p>
+
+            <label for="pointName">نام</label>
+            <input id="pointName" maxlength="80" autocomplete="off" placeholder="مثلاً مشتری ۱" />
+            <div class="two-col">
+              <div><label for="lat">عرض جغرافیایی</label><input id="lat" inputmode="decimal" autocomplete="off" placeholder="35.7219" /></div>
+              <div><label for="lng">طول جغرافیایی</label><input id="lng" inputmode="decimal" autocomplete="off" placeholder="51.3347" /></div>
+            </div>
+            <div id="customerFields">
+              <div class="two-col">
+                <div><label for="demand">تقاضا (<span id="demandUnitLabel">واحد</span>)</label><input id="demand" inputmode="decimal" value="1" /></div>
+                <div>
+                  <label for="priority">اولویت مشتری</label>
+                  <select id="priority">
+                    <option value="1">۱ · عادی</option><option value="2">۲ · متوسط</option><option value="3" selected>۳ · مهم</option><option value="4">۴ · بالا</option><option value="5">۵ · بسیار بالا</option>
+                  </select>
+                </div>
+              </div>
+              <p class="field-note">اولویت یک معیار ثانویه است؛ در حالت دقیق، تابع هدف اصلی همچنان فاصله است و اولویت باعث قربانی‌کردن بهینگی فاصله‌ای نمی‌شود.</p>
+            </div>
+            <div class="form-actions">
+              <button id="savePoint" class="primary" type="button">＋ افزودن مشتری</button>
+              <button id="cancelEdit" class="secondary hidden" type="button">لغو ویرایش</button>
+              <button id="myLocation" class="secondary hidden" type="button">◎ موقعیت من برای دپو</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title points-title"><span>🧭 نقاط ثبت‌شده</span><span id="pointsSummary" class="pill">بدون نقطه</span></div>
+            <div id="registeredPoints" class="registered-points"></div>
+            <button id="fitPoints" class="subtle full" type="button">نمایش همه نقاط روی نقشه</button>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">📦 واحد ظرفیت و تقاضا</div>
+            <label for="capacityUnit">واحد مشترک مدل</label>
+            <select id="capacityUnit">
+              <option value="واحد">واحد عمومی</option>
+              <option value="کیلوگرم">کیلوگرم (kg)</option>
+              <option value="تن">تن (ton)</option>
+              <option value="مترمکعب">مترمکعب (m³)</option>
+              <option value="پالت">پالت</option>
+              <option value="بسته">بسته</option>
+              <option value="مسافر">مسافر</option>
+              <option value="custom">واحد دلخواه…</option>
+            </select>
+            <div id="customUnitWrap" class="hidden"><label for="customUnit">نام واحد دلخواه</label><input id="customUnit" maxlength="24" placeholder="مثلاً سبد" /></div>
+            <p class="field-note">این نسخه ظرفیت را یک‌بعدی مدل می‌کند. تغییر نام واحد، اعداد قبلی را تبدیل نمی‌کند؛ تقاضا و ظرفیت خودروها باید هم‌واحد باشند.</p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">🚚 ناوگان ناهمگن</div>
+            <div class="two-col">
+              <div><label for="vehicleName">نام خودرو</label><input id="vehicleName" maxlength="60" placeholder="وانت ۱" /></div>
+              <div><label for="vehicleType">نوع</label><input id="vehicleType" maxlength="40" placeholder="وانت / کامیون" /></div>
+            </div>
+            <label for="vehicleCapacity">ظرفیت (<span id="vehicleUnitLabel">واحد</span>)</label>
+            <input id="vehicleCapacity" type="number" min="0.0001" step="any" value="10" />
+            <div class="form-actions">
+              <button id="saveVehicle" class="primary" type="button">＋ افزودن خودرو</button>
+              <button id="cancelVehicleEdit" class="secondary hidden" type="button">لغو ویرایش</button>
+            </div>
+            <div id="vehicleList" class="vehicle-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">🧠 روش حل</div>
+            <label for="solverMode">حالت حل</label>
+            <select id="solverMode">
+              <option value="auto" selected>خودکار · ابتدا دقیق، سپس ابتکاری در صورت نیاز</option>
+              <option value="exact">فقط دقیق · مناسب مسائل کوچک</option>
+              <option value="heuristic">فقط ابتکاری · سریع و بدون تضمین بهینگی</option>
+            </select>
+            <div class="solver-policy">
+              <b>سیاست حالت خودکار</b>
+              <span>تا ۱۲ مشتری تلاش برای حل دقیق در Web Worker</span>
+              <span>اگر حد محاسباتی/زمانی رد شود → حل ابتکاری</span>
+              <span>نوع جواب در نتیجه صریح گزارش می‌شود</span>
+            </div>
+            <div class="stats-mini"><span>مشتری: <b id="customerCount">۰</b></span><span>تقاضای کل: <b id="totalDemand">۰</b></span><span>ظرفیت فعال: <b id="totalCapacity">۰</b></span></div>
+            <button id="solveBtn" class="solve-btn" type="button">▶ حل و نمایش مسیر</button>
+          </section>
+
+          <section class="panel compact-actions">
+            <button id="sampleBtn" type="button">داده نمونه</button>
+            <button id="exportBtn" type="button">↓ خروجی JSON</button>
+            <label class="file-button">↑ ورود JSON<input id="importFile" type="file" accept="application/json,.json" /></label>
+            <button id="resetBtn" class="danger-text" type="button">↺ پاک‌کردن همه</button>
+          </section>
+
+          <div id="status" class="status-box" role="status" aria-live="polite">ابتدا دپو، مشتری‌ها و خودروها را تعریف کنید.</div>
+        </aside>
+
+        <div class="workspace">
+          <div class="map-wrap">
+            <div id="map" class="map" aria-label="نقشه انتخاب نقاط و نمایش مسیر"></div>
+            <div class="map-badge">حالت کلیک: <b id="modeBadge">انتخاب مشتری</b></div>
+          </div>
+
+          <section class="results" aria-labelledby="results-title">
+            <div class="results-head">
+              <div><h3 id="results-title">نتیجه حل</h3><p id="resultSubtitle">بعد از حل، روش، کیفیت و جزئیات مسیرها اینجا نمایش داده می‌شود.</p></div>
+              <div id="totals" class="totals hidden">
+                <div><span>تابع هدف · فاصله</span><b id="totalDistance">—</b></div>
+                <div><span>زمان برآوردی*</span><b id="totalDuration">—</b></div>
+              </div>
+            </div>
+            <div id="solutionBadge" class="solution-badge hidden"></div>
+            <div id="warning" class="warning hidden"></div>
+            <div id="routeGrid" class="route-grid"></div>
+            <p id="durationNote" class="duration-note hidden">* زمان فقط خروجی تخمینی پروفایل OSRM است و در تابع هدف اپتی‌مسیر استفاده نمی‌شود؛ ترافیک زنده لحاظ نشده است.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="content-section">
+      <div class="section-heading"><div><span class="eyebrow">شفافیت مدل</span><h2>اپتی‌مسیر دقیقاً چه چیزی را حل می‌کند؟</h2></div></div>
+      <div class="explain-grid">
+        <article><h3>۱. ورودی ایستا</h3><p>دپو، موقعیت مشتری‌ها، تقاضا، اولویت و ظرفیت خودروها قبل از حل معلوم و ثابت فرض می‌شوند. ورود سفارش جدید، لغو سفارش، خرابی خودرو یا تغییر شرایط در حین اجرا به‌صورت پویا بازبهینه‌سازی نمی‌شود.</p></article>
+        <article><h3>۲. تابع هدف فاصله‌ای</h3><p>Solver مجموع فاصله ماتریس جاده‌ای بین نقاط را کمینه می‌کند. زمان سفر، دستمزد، سوخت، عوارض، انتشار کربن و تعداد خودرو در تابع هدف فعلی وزن مستقل ندارند.</p></article>
+        <article><h3>۳. ناوگان ناهمگن</h3><p>هر خودرو ظرفیت مستقل دارد و می‌تواند نوع متفاوتی داشته باشد. با این حال همه خودروها فعلاً از همان شبکه مسیریابی عمومی خودرو در OSRM استفاده می‌کنند؛ نوع خودرو به معنی اعمال خودکار محدودیت کامیون روی خیابان‌ها نیست.</p></article>
+        <article><h3>۴. اولویت مشتری</h3><p>همه مشتری‌ها باید سرویس بگیرند. اولویت برای ترجیح عملیاتی در روش ابتکاری استفاده می‌شود؛ بین درج‌های مسیر با افزایش فاصله نزدیک به بهترین گزینه، مشتری با اولویت بالاتر زودتر ترجیح داده می‌شود؛ در حل دقیق، بهینگی فاصله‌ای هدف اصلی باقی می‌ماند و مشتری کم‌اولویت حذف نمی‌شود.</p></article>
+      </div>
+
+      <div id="model-limitations" class="limitations">
+        <h3>محدودیت‌هایی که باید قبل از استفاده واقعی بدانید</h3>
+        <ul>
+          <li><b>ترافیک زنده:</b> لحاظ نمی‌شود. زمان‌های نمایش‌داده‌شده برآورد پروفایل ایستای موتور مسیریابی‌اند.</li>
+          <li><b>مسیر تخصصی کامیون:</b> ارتفاع، وزن مجاز، عرض، محدودیت محور و مقررات ناوگان سنگین در سرویس عمومی فعلی مدل نشده‌اند.</li>
+          <li><b>Time Window:</b> در این نسخه عمداً وارد مدل نشده؛ چون هدف فعلی یک CVRP/HVRP ایستا و فاصله‌محور است. افزودن پنجره زمانی نیازمند مدل VRPTW و فرض‌های زمانی معتبر است.</li>
+          <li><b>تقاضای یک‌بعدی:</b> ظرفیت فقط در یک واحد مشترک سنجیده می‌شود؛ وزن و حجم هم‌زمان هنوز مدل نشده‌اند.</li>
+          <li><b>تقسیم تقاضا:</b> تقاضای هر مشتری باید کامل توسط یک خودرو خدمت‌رسانی شود (unsplittable demand).</li>
+          <li><b>حل دقیق:</b> فقط برای ابعاد کوچک عملی است. «دقیق» یعنی بهینه نسبت به همان ماتریس فاصله ورودی، نه تضمین بهترین برنامه در دنیای واقعی با عواملی که در مدل نیستند.</li>
+          <li><b>OSRM عمومی:</b> سرویس رایگان عمومی برای نمونه‌سازی و استفاده سبک مناسب است و SLA تجاری ندارد. برای تولید پرترافیک، میزبانی سرویس مسیریابی اختصاصی توصیه می‌شود.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="applications" class="content-section muted-section">
+      <div class="section-heading"><div><span class="eyebrow">کاربرد عملی</span><h2>چطور از مدل در مسئله واقعی استفاده کنیم؟</h2></div></div>
+      <div class="use-cases">
+        <article><span>📦</span><h3>پخش کالا</h3><p>هر فروشگاه را مشتری، انبار را دپو، تعداد کارتن/پالت/کیلوگرم را تقاضا و ظرفیت واقعی هر وانت یا کامیون را ظرفیت تعریف کنید. خروجی، پیشنهاد تخصیص سفارش‌ها و ترتیب مراجعه است.</p></article>
+        <article><span>💊</span><h3>توزیع دارو</h3><p>داروخانه‌ها را به‌عنوان نقاط تقاضا وارد کنید و ناوگان با ظرفیت متفاوت بسازید. اگر محدودیت دمایی یا پنجره زمانی حیاتی است، مدل فعلی به‌تنهایی کافی نیست و باید توسعه داده شود.</p></article>
+        <article><span>🛠️</span><h3>خدمات سیار</h3><p>مکان مأموریت‌ها را مشتری و ظرفیت را یک واحد عملیاتی مانند «تعداد مأموریت قابل انجام» تعریف کنید. چون زمان سرویس در مدل نیست، برای شیفت‌بندی دقیق تکنسین‌ها باید مدل غنی‌تر شود.</p></article>
+        <article><span>🧪</span><h3>آموزش و پژوهش</h3><p>برای مقایسه روش دقیق و ابتکاری، بررسی اثر ظرفیت ناوگان، تحلیل حساسیت مکانی و ساخت نمونه‌های CVRP/HVRP مناسب است. خروجی JSON امکان بازتولید سناریوها را فراهم می‌کند.</p></article>
+      </div>
+    </section>
+
+    <section id="research" class="content-section">
+      <div class="section-heading"><div><span class="eyebrow">پشتوانه علمی</span><h2>جایگاه پژوهشی مسئله</h2></div></div>
+      <div class="research-copy">
+        <p>مسئله مسیریابی وسایل نقلیه از مسائل کلاسیک بهینه‌سازی ترکیبیاتی است. مقاله Dantzig و Ramser در سال ۱۹۵۹ مسئله تخصیص و مسیر کامیون‌ها با هدف کاهش مسافت را صورت‌بندی کرد. روش Savings کلارک و رایت در سال ۱۹۶۴ یکی از مشهورترین روش‌های ابتکاری کلاسیک برای ساخت سریع مسیرهای خوب شد. نسخه‌های امروزی VRP خانواده بزرگی از مدل‌ها مانند CVRP، HVRP، VRPTW، Dynamic VRP و Green VRP را شامل می‌شوند.</p>
+        <div class="reference-list">
+          <a href="https://doi.org/10.1287/mnsc.6.1.80" target="_blank" rel="noopener noreferrer"><b>Dantzig & Ramser (1959)</b><span>The Truck Dispatching Problem · Management Science</span></a>
+          <a href="https://doi.org/10.1287/opre.12.4.568" target="_blank" rel="noopener noreferrer"><b>Clarke & Wright (1964)</b><span>Scheduling of Vehicles from a Central Depot to a Number of Delivery Points · Operations Research</span></a>
+          <a href="https://project-osrm.org/docs/" target="_blank" rel="noopener noreferrer"><b>OSRM Documentation</b><span>Route/Table services and routing profiles over OpenStreetMap</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section faq-section" aria-labelledby="faq-title">
+      <div class="section-heading"><div><span class="eyebrow">پرسش‌های کلیدی</span><h2 id="faq-title">سؤالات متداول</h2></div></div>
+      <details><summary>آیا جواب اپتی‌مسیر همیشه بهینه است؟</summary><p>خیر. اگر نتیجه با «حل دقیق» گزارش شود، جواب نسبت به ماتریس فاصله استفاده‌شده و مدل تعریف‌شده بهینه است. اگر حل ابتکاری استفاده شود، جواب شدنی و معمولاً مناسب است اما تضمین بهینگی ندارد.</p></details>
+      <details><summary>آیا ترافیک تهران یا سایر شهرها در جواب اثر دارد؟</summary><p>خیر. نسخه فعلی ترافیک لحظه‌ای را دریافت نمی‌کند. هدف Solver فاصله است و زمان نمایش‌داده‌شده صرفاً تخمین موتور مسیریابی است.</p></details>
+      <details><summary>فرق «مسیر واقعی» با «مدل واقعی» چیست؟</summary><p>خط مسیر روی شبکه خیابان‌ها رسم می‌شود، اما مدل تصمیم‌گیری هنوز ساده‌سازی‌هایی دارد. واقعی بودن هندسه مسیر به معنی لحاظ شدن همه هزینه‌ها، قوانین کامیون، ترافیک، شیفت، زمان سرویس یا عدم قطعیت نیست.</p></details>
+    </section>
+  </main>
+
+  <footer>
+    <div><b>اپتی‌مسیر</b><span>ابزار آموزشی و پژوهشی رایگان برای بهینه‌سازی مسیر</span></div>
+    <p>کاری از <a href="https://www.linkedin.com/in/hossein-karimi-8a452153/" target="_blank" rel="noopener noreferrer">حسین کریمی</a></p>
+    <small>OpenStreetMap contributors · OSRM · Leaflet · Vazirmatn</small>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
