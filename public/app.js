@@ -1,5 +1,6 @@
 const OSRM_BASE = 'https://router.project-osrm.org'
 const ROUTE_COLORS = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#be123c', '#4f46e5']
+const IRAN_BOUNDS = [[24.5, 44.0], [40.0, 63.5]]
 
 const state = {
   mode: 'customer',
@@ -14,7 +15,8 @@ const $ = (id) => document.getElementById(id)
 const fmt = (value, digits = 1) => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: digits }).format(value)
 const setStatus = (message) => { $('status').textContent = message }
 
-const map = L.map('map', { zoomControl: true }).setView([32.2, 53.7], 5)
+const map = L.map('map', { zoomControl: true })
+map.fitBounds(IRAN_BOUNDS, { padding: [12, 12], animate: false })
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -22,15 +24,17 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 map.on('click', (event) => {
   const { lat, lng } = event.latlng
+  $('lat').value = lat.toFixed(6)
+  $('lng').value = lng.toFixed(6)
+
   if (state.mode === 'depot') {
+    // Keep the exact clicked coordinate in both the form and the app state.
+    // This prevents «ثبت دپو» from overwriting the clicked point with stale inputs.
     state.depot = { id: 'depot', name: $('pointName').value.trim() || 'دپو', lat, lng }
     clearResult()
     renderPoints()
-    fitData()
-    setStatus('دپو از روی نقشه تنظیم شد.')
+    setStatus('دپو دقیقاً در محل کلیک ثبت شد. مختصات نیز در فیلدها قرار گرفت.')
   } else {
-    $('lat').value = lat.toFixed(6)
-    $('lng').value = lng.toFixed(6)
     setStatus('مختصات مشتری از روی نقشه انتخاب شد؛ تقاضا را وارد کنید و «افزودن مشتری» را بزنید.')
   }
 })
@@ -48,7 +52,9 @@ function setMode(mode) {
 }
 
 function parseCoordinate(id, min, max) {
-  const value = Number($(id).value)
+  const raw = $(id).value.trim()
+  if (raw === '') return null
+  const value = Number(raw)
   if (!Number.isFinite(value) || value < min || value > max) return null
   return value
 }
@@ -70,7 +76,7 @@ function addCustomer() {
   $('demand').value = '1'
   clearResult()
   renderPoints()
-  fitData()
+  // Do not auto-fit here; preserve the user's current zoom and map position.
   setStatus('مشتری اضافه شد.')
 }
 
@@ -84,7 +90,8 @@ function setDepotFromInputs() {
   $('lng').value = ''
   clearResult()
   renderPoints()
-  fitData()
+  // Registering a depot must not unexpectedly change the current viewport.
+  if (!map.getBounds().contains([lat, lng])) map.panTo([lat, lng], { animate: false })
   setStatus('دپو تنظیم شد.')
 }
 
@@ -127,15 +134,71 @@ function renderPoints() {
     state.pointLayers.push(marker)
   })
   updateStats()
+  renderRegisteredPoints()
 }
 
 function removeCustomer(id) {
-  state.customers = state.customers.filter((customer) => customer.id !== id)
+  const customer = state.customers.find((item) => item.id === id)
+  if (!customer) return
+  state.customers = state.customers.filter((item) => item.id !== id)
   clearResult()
   map.closePopup()
   renderPoints()
-  fitData()
-  setStatus('مشتری حذف شد.')
+  // Keep the viewport unchanged while editing customer points.
+  setStatus(`مشتری «${customer.name}» حذف شد.`)
+}
+
+function removeDepot() {
+  if (!state.depot) return setStatus('دپویی برای حذف وجود ندارد.')
+  const depotName = state.depot.name
+  state.depot = null
+  clearResult()
+  map.closePopup()
+  renderPoints()
+  setStatus(`دپو «${depotName}» حذف شد. مشتری‌ها حفظ شدند.`)
+}
+
+function renderRegisteredPoints() {
+  const container = $('registeredPoints')
+  const totalPoints = state.customers.length + (state.depot ? 1 : 0)
+  $('pointsSummary').textContent = totalPoints ? `${fmt(totalPoints, 0)} نقطه` : 'بدون نقطه'
+
+  const rows = []
+  if (state.depot) {
+    rows.push(`
+      <div class="point-row depot-row">
+        <div class="point-row-main">
+          <span class="point-kind depot-kind">D</span>
+          <div>
+            <b>${escapeHtml(state.depot.name)}</b>
+            <small>${state.depot.lat.toFixed(5)}, ${state.depot.lng.toFixed(5)}</small>
+          </div>
+        </div>
+        <button class="point-delete" type="button" data-remove-depot>حذف</button>
+      </div>`)
+  }
+
+  state.customers.forEach((customer, index) => {
+    rows.push(`
+      <div class="point-row">
+        <div class="point-row-main">
+          <span class="point-kind">${index + 1}</span>
+          <div>
+            <b>${escapeHtml(customer.name)}</b>
+            <small>تقاضا: ${fmt(customer.demand)} · ${customer.lat.toFixed(5)}, ${customer.lng.toFixed(5)}</small>
+          </div>
+        </div>
+        <button class="point-delete" type="button" data-remove-customer="${customer.id}">حذف</button>
+      </div>`)
+  })
+
+  container.innerHTML = rows.length ? rows.join('') : '<div class="points-empty">هنوز دپو یا مشتری ثبت نشده است.</div>'
+
+  container.querySelector('[data-remove-depot]')?.addEventListener('click', removeDepot)
+  container.querySelectorAll('[data-remove-customer]').forEach((button) => {
+    button.addEventListener('click', () => removeCustomer(button.dataset.removeCustomer))
+  })
+  $('removeDepot').disabled = !state.depot
 }
 
 function updateStats() {
@@ -445,7 +508,7 @@ function reset() {
   state.customers = []
   clearResult()
   renderPoints()
-  map.setView([32.2, 53.7], 5)
+  map.fitBounds(IRAN_BOUNDS, { padding: [12, 12], animate: false })
   setStatus('داده‌ها پاک شدند.')
 }
 
@@ -497,6 +560,7 @@ $('modeDepot').addEventListener('click', () => setMode('depot'))
 $('addCustomer').addEventListener('click', addCustomer)
 $('setDepot').addEventListener('click', setDepotFromInputs)
 $('myLocation').addEventListener('click', useMyLocation)
+$('removeDepot').addEventListener('click', removeDepot)
 $('solveBtn').addEventListener('click', solve)
 $('sampleBtn').addEventListener('click', loadExample)
 $('resetBtn').addEventListener('click', reset)

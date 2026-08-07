@@ -46,10 +46,19 @@
         <div id="customerActions">
           <button id="addCustomer" class="primary">＋ افزودن مشتری</button>
         </div>
-        <div id="depotActions" class="button-row hidden">
+        <div id="depotActions" class="depot-action-grid hidden">
           <button id="setDepot" class="primary no-margin">▣ ثبت دپو</button>
           <button id="myLocation" class="secondary">◎ موقعیت من</button>
+          <button id="removeDepot" class="point-delete full-width" type="button">حذف دپو</button>
         </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title points-title">
+          <span>🧭 نقاط ثبت‌شده</span>
+          <span id="pointsSummary" class="points-summary">بدون نقطه</span>
+        </div>
+        <div id="registeredPoints" class="registered-points"></div>
       </section>
 
       <section class="panel">
